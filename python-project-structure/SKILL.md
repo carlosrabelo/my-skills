@@ -1,6 +1,6 @@
 ---
 name: python-project-structure
-description: Guide to organizing Python projects with pyproject.toml, .venv, src/ layout, Makefile hierarchy, and run/ scripts. Covers anti-patterns, testing patterns, error handling, and works for multiple independent Python projects.
+description: Guide to organizing Python projects with pyproject.toml, .venv, src/ layout, and a single self-documenting Makefile. Covers anti-patterns, testing patterns, error handling, stamp file pattern, multiple entry points, and works for multiple independent Python projects.
 mode: agent
 category: python
 shared: true
@@ -12,12 +12,13 @@ Comprehensive guide to organizing Python projects following a consistent pattern
 
 ## Overview
 
-This skill explains a pragmatic Python project structure where all source code lives in `src/<package_name>/`, the virtual environment stays at the project root as `.venv`, and `pyproject.toml` defines the project. Uses a hierarchical Makefile approach: root Makefile for orchestration, `run/` scripts for the actual work.
+This skill explains a pragmatic Python project structure where all source code lives in `src/<package_name>/`, the virtual environment stays at the project root as `.venv`, and `pyproject.toml` defines the project. A single Makefile at the project root handles all automation — no `run/` scripts, no nested Makefiles.
 
 **Key principles**:
 - `.venv` is always at the project root — never inside `src/`
 - `pyproject.toml` is the single source of truth for metadata and dependencies
 - `src/` layout prevents accidental imports without installation
+- Makefile invokes `.venv/bin/` tools directly — no activation needed
 - Python version: **3.12.3**
 
 ---
@@ -26,17 +27,12 @@ This skill explains a pragmatic Python project structure where all source code l
 
 ```
 project-name/
-├── Makefile                      ← Root Makefile (orchestrates everything)
+├── Makefile                      ← Single Makefile (no src/Makefile, no run/)
 │
 ├── .venv/                        ← Virtual environment (NEVER commit)
+│   └── .installed                ← Stamp file: tracks install state
 │
 ├── pyproject.toml                ← Project metadata, dependencies, tool config
-│
-├── run/                          ← Automation scripts
-│   ├── setup.sh                  ← Create .venv and install dependencies
-│   ├── test.sh                   ← Run tests
-│   ├── lint.sh                   ← Run linter
-│   └── install.sh                ← Install CLI tool to ~/.local/bin
 │
 ├── LICENSE                       ← Project license
 ├── README.md                     ← English documentation
@@ -50,16 +46,15 @@ project-name/
 │       │   ├── __init__.py
 │       │   ├── processor.py      ← Main processing logic
 │       │   └── errors.py         ← Custom exception types
-│       └── utils/                ← Only if domain-specific name doesn't fit
-│           ├── __init__.py
-│           └── helpers.py
+│       └── (domain modules)
 │
 └── tests/                        ← All tests (outside src/)
     ├── __init__.py
     ├── conftest.py               ← Pytest fixtures and configuration
-    ├── test_processor.py         ← Tests mirror src/ structure
-    └── test_cli.py
+    └── test_*.py
 ```
+
+No `run/`, no `bin/`, no `src/Makefile`.
 
 ---
 
@@ -130,127 +125,81 @@ strict = true
 python3 -m venv .venv
 ```
 
-**Activate**:
-```bash
-source .venv/bin/activate
-```
-
 **Install project in editable mode** (so imports from `src/` work):
 ```bash
-pip install -e ".[dev]"
+.venv/bin/pip install -e ".[dev]"
 ```
 
-**Never commit** — add to `.gitignore`.
+**Use tools directly** — no activation needed:
+```bash
+.venv/bin/pytest tests/
+.venv/bin/ruff check src/
+```
+
+**Never commit** — add `.venv/` to `.gitignore`.
 
 ---
 
 ## Makefile
 
-**Purpose**: Single entry point for all operations. Delegates to `run/` scripts.
+**Purpose**: Single entry point for all operations. Invokes `.venv/bin/` tools directly.
 
-**Location**: Project root.
+**Location**: Project root. No `src/Makefile`, no `run/` scripts.
 
 ```makefile
 MAKEFLAGS += --no-print-directory
 
+PYTHON  := .venv/bin/python
+PIP     := .venv/bin/pip
+PYTEST  := .venv/bin/pytest
+RUFF    := .venv/bin/ruff
+MYPY    := .venv/bin/mypy
+
 .PHONY: setup test lint fmt typecheck clean install help
 
-setup:
-	./run/setup.sh
+setup: .venv/.installed  ## Create .venv and install dependencies
 
-test:
-	./run/test.sh
+.venv/.installed: pyproject.toml
+	@[ -d .venv ] || python3 -m venv .venv
+	$(PIP) install -e ".[dev]" --quiet
+	@touch .venv/.installed
 
-lint:
-	./run/lint.sh
+test: ## Run tests
+	$(PYTEST) tests/
 
-fmt:
-	.venv/bin/ruff format src/ tests/
+lint: ## Run linter (ruff)
+	$(RUFF) check src/ tests/
 
-typecheck:
-	.venv/bin/mypy src/
+fmt: ## Format code (ruff format)
+	$(RUFF) format src/ tests/
 
-clean:
-	rm -rf dist/ build/ *.egg-info src/*.egg-info
+typecheck: ## Run type checker (mypy)
+	$(MYPY) src/
+
+clean: ## Remove build artifacts and __pycache__
+	rm -rf dist/ build/ *.egg-info src/*.egg-info .venv/.installed
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 
-install: setup
-	./run/install.sh
+install: setup ## Install CLI to ~/.local/bin
+	cp .venv/bin/project-name $(HOME)/.local/bin/project-name
 
-help:
-	@echo "Usage: make <target>"
-	@echo ""
-	@echo "Targets:"
-	@echo "  setup      Create .venv and install dependencies"
-	@echo "  test       Run tests"
-	@echo "  lint       Run linter (ruff)"
-	@echo "  fmt        Format code (ruff format)"
-	@echo "  typecheck  Run type checker (mypy)"
-	@echo "  clean      Remove build artifacts and __pycache__"
-	@echo "  install    Install CLI tool to ~/.local/bin"
+help: ## Show this help
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  %-12s %s\n", $$1, $$2}'
 ```
 
----
+### Key Makefile Patterns
 
-## run/ — Shell Scripts
+**Variables for `.venv/bin/` tools** — no `source .venv/bin/activate` needed anywhere.
 
-Scripts do the actual work directly. The Makefile simply invokes them.
+**Stamp file** — `.venv/.installed` tracks whether deps are current:
+- `setup` is a file target, not `.PHONY`
+- Make re-runs it only when `pyproject.toml` is newer than `.venv/.installed`
+- After `clean`, touching `pyproject.toml` or running `make setup` reinstalls
+- `clean` deletes `.venv/.installed` but not `.venv/` itself (fast re-install)
 
-**Convention**:
-- Always start with `set -euo pipefail`
-- Activate `.venv` before running Python commands
-- Keep scripts simple and focused
-
-**Example `run/setup.sh`**:
-```bash
-#!/bin/bash
-set -euo pipefail
-
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-
-if [ ! -d "$ROOT_DIR/.venv" ]; then
-    echo "Creating virtual environment..."
-    python3 -m venv "$ROOT_DIR/.venv"
-fi
-
-echo "Installing dependencies..."
-"$ROOT_DIR/.venv/bin/pip" install -e "$ROOT_DIR[dev]" --quiet
-echo "Setup complete."
-```
-
-**Example `run/test.sh`**:
-```bash
-#!/bin/bash
-set -euo pipefail
-
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-
-"$ROOT_DIR/.venv/bin/pytest" "$ROOT_DIR/tests/" "$@"
-```
-
-**Example `run/lint.sh`**:
-```bash
-#!/bin/bash
-set -euo pipefail
-
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-
-"$ROOT_DIR/.venv/bin/ruff" check src/ tests/
-```
-
-**Example `run/install.sh`**:
-```bash
-#!/bin/bash
-set -euo pipefail
-
-BINARY_NAME="project-name"
-INSTALL_DIR="${HOME}/.local/bin"
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-
-cp "$ROOT_DIR/.venv/bin/$BINARY_NAME" "$INSTALL_DIR/$BINARY_NAME"
-echo "Installed: $INSTALL_DIR/$BINARY_NAME"
-```
+**Self-documenting help** — add `## description` after the colon on any target, and `make help` shows it automatically.
 
 ---
 
@@ -382,7 +331,7 @@ class ProcessingError(ProjectError):
 
 ---
 
-## Shebangs and .venv
+## Shebangs and Self-Relaunching
 
 Python scripts meant to be run directly (e.g. `./script.py`) must point to the right interpreter. On Linux, shebangs **must be absolute paths** — relative paths like `#!.venv/bin/python` are not supported by the kernel.
 
@@ -436,38 +385,6 @@ chmod +x my-script.py
 ./my-script.py
 ```
 
-### Multiple Scripts
-
-Each script is self-contained. Copy the relauncher block at the top of every script:
-
-```python
-#!/usr/bin/env python3
-"""Another script."""
-
-import os
-import sys
-from pathlib import Path
-
-_root = Path(__file__).resolve().parent
-_venv_python = _root / ".venv" / "bin" / "python"
-
-if _venv_python.exists() and Path(sys.executable).resolve() != _venv_python.resolve():
-    os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
-
-# script-specific code below
-from project_name.core.processor import process
-```
-
-### Why Not Other Approaches
-
-| Approach | Problem |
-|----------|---------|
-| `#!.venv/bin/python` | Relative shebangs not supported on Linux |
-| `#!/usr/bin/env python3` alone | Uses system Python, deps not available |
-| Activate venv manually | Requires user to remember every time |
-| Bash wrapper script | Extra file, more complexity |
-| `#!/absolute/path/.venv/bin/python` | Path changes per machine, not portable |
-
 ### Script Template
 
 ```python
@@ -499,6 +416,64 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 ```
+
+### Why Not Other Approaches
+
+| Approach | Problem |
+|----------|---------|
+| `#!.venv/bin/python` | Relative shebangs not supported on Linux |
+| `#!/usr/bin/env python3` alone | Uses system Python, deps not available |
+| Activate venv manually | Requires user to remember every time |
+| Bash wrapper script | Extra file, more complexity |
+| `#!/absolute/path/.venv/bin/python` | Path changes per machine, not portable |
+
+---
+
+## Multiple Entry Points
+
+For projects with more than one CLI script or command, there are two approaches:
+
+### Approach 1: Multiple `[project.scripts]` entries
+
+Define each command in `pyproject.toml`:
+
+```toml
+[project.scripts]
+project-fetch   = "project_name.cli_fetch:main"
+project-process = "project_name.cli_process:main"
+project-report  = "project_name.cli_report:main"
+```
+
+Each becomes an independent executable in `.venv/bin/` after `pip install -e .`.
+
+### Approach 2: Subcommands in a single CLI
+
+```python
+# src/project_name/cli.py
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    fetch_parser = sub.add_parser("fetch", help="Fetch data")
+    process_parser = sub.add_parser("process", help="Process data")
+
+    args = parser.parse_args()
+    if args.command == "fetch":
+        fetch.run(args)
+    elif args.command == "process":
+        process.run(args)
+```
+
+### Approach 3: Standalone scripts with `PYTHONPATH`
+
+For lightweight projects that don't need packaging, use `PYTHONPATH=.` instead of editable install:
+
+```makefile
+test: ## Run tests
+	PYTHONPATH=. $(PYTEST) tests/
+```
+
+Scripts import directly without `pip install -e .`. Useful for small utilities.
 
 ---
 
@@ -670,6 +645,8 @@ htmlcov/
 Thumbs.db
 ```
 
+Note: `.venv/.installed` is inside `.venv/` and is therefore already excluded.
+
 ---
 
 ## Anti-Patterns: What NOT to Do
@@ -680,7 +657,7 @@ Thumbs.db
 # ❌ BAD
 git add .venv/
 
-# ✅ GOOD: .venv in .gitignore, reproducible via run/setup.sh
+# ✅ GOOD: .venv in .gitignore, reproducible via make setup
 ```
 
 ### ❌ Anti-Pattern 2: No src/ Layout
@@ -698,7 +675,25 @@ project-name/
         └── __init__.py
 ```
 
-### ❌ Anti-Pattern 3: Logic in cli.py
+### ❌ Anti-Pattern 3: run/ Scripts (Python is not Go)
+
+```
+# ❌ BAD: Go-ism that adds no value in Python
+project-name/
+├── Makefile          ← just calls ./run/*.sh
+└── run/
+    ├── setup.sh
+    ├── test.sh
+    └── lint.sh
+
+# ✅ GOOD: Makefile invokes .venv/bin/ tools directly
+project-name/
+└── Makefile          ← PYTHON := .venv/bin/python; $(PYTEST) tests/
+```
+
+In Go, `run/` scripts exist because the Makefile must `cd src/` before running Go tools. In Python, the Makefile can call `.venv/bin/python` directly from the project root — `run/` scripts are pure overhead.
+
+### ❌ Anti-Pattern 4: Logic in cli.py
 
 ```python
 # ❌ BAD: business logic in CLI
@@ -715,7 +710,7 @@ def main() -> None:
     print(result)
 ```
 
-### ❌ Anti-Pattern 4: Bare except or Ignoring Errors
+### ❌ Anti-Pattern 5: Bare except or Ignoring Errors
 
 ```python
 # ❌ BAD
@@ -731,7 +726,7 @@ except ProcessingError as e:
     raise  # or handle explicitly
 ```
 
-### ❌ Anti-Pattern 5: setup.py Instead of pyproject.toml
+### ❌ Anti-Pattern 6: setup.py Instead of pyproject.toml
 
 ```python
 # ❌ BAD: legacy approach
@@ -741,7 +736,7 @@ except ProcessingError as e:
 # pyproject.toml
 ```
 
-### ❌ Anti-Pattern 6: Generic Module Names
+### ❌ Anti-Pattern 7: Generic Module Names
 
 ```python
 # ❌ BAD
@@ -761,8 +756,8 @@ src/project_name/io/reader.py
 
 ### 1. Virtual Environment
 - Always `.venv` at project root
-- Always activate before running anything: `source .venv/bin/activate`
-- Reproducible via `run/setup.sh`
+- Invoke tools via `.venv/bin/` directly — activation is for interactive shells, not Makefiles
+- Reproducible via `make setup`
 
 ### 2. Dependencies
 - Runtime deps in `[project.dependencies]`
@@ -799,6 +794,7 @@ src/project_name/io/reader.py
 | Add test fixture | `tests/conftest.py` | Shared across test files |
 | Add runtime dependency | `pyproject.toml [project.dependencies]` | Then `make setup` |
 | Add dev dependency | `pyproject.toml [project.optional-dependencies] dev` | Then `make setup` |
+| Add automation task | `Makefile` | Direct `.venv/bin/` call, add `## comment` for help |
 
 ---
 
@@ -807,7 +803,6 @@ src/project_name/io/reader.py
 ```bash
 # First time setup
 make setup
-source .venv/bin/activate
 
 # Daily loop
 make fmt          # Format code
@@ -822,12 +817,50 @@ make test
 # Install CLI locally
 make install
 project-name --help
+
+# See all available targets
+make help
 ```
+
+After `make setup`, no need to `source .venv/bin/activate` — all Makefile targets use `.venv/bin/` directly.
+
+---
+
+## Docker (Optional)
+
+For projects that need containerized deployment (e.g. services, not just CLI tools):
+
+```dockerfile
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY pyproject.toml .
+COPY src/ src/
+
+RUN pip install --no-cache-dir -e .
+
+ENTRYPOINT ["project-name"]
+```
+
+Add to Makefile:
+
+```makefile
+IMAGE := project-name
+
+docker-build: ## Build Docker image
+	docker build -t $(IMAGE) .
+
+docker-run: ## Run in Docker
+	docker run --rm $(IMAGE)
+```
+
+Not needed for pure CLI tools installed to `~/.local/bin`.
 
 ---
 
 ## Related Skills
 
-- **go-project-structure** — Same philosophy, adapted for Go
+- **go-project-structure** — Same philosophy, adapted for Go (uses run/ because Go requires cd src/)
 - **git-workflow-go** — Commit conventions apply equally to Python projects
 - **readme-bilingual-sync** — Keep README.md and README-PT.md synchronized
