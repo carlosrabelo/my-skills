@@ -1,6 +1,6 @@
 ---
 name: python-reorganize-refactor
-description: Guide to refactoring and reorganizing existing Python code to fit the standard project structure (src/ layout, core/, tests/). Handles moving modules, creating packages, splitting files, and maintaining tests during refactoring.
+description: Guide to refactoring and reorganizing existing Python code to fit the standard project structure (src/ flat layout, sub-packages only when truly needed, tests/). Handles moving modules, creating packages, splitting files, and maintaining tests during refactoring.
 mode: agent
 category: python
 shared: true
@@ -8,15 +8,15 @@ shared: true
 
 # Python Code Refactoring and Reorganization
 
-Guide to refactoring existing Python projects to fit the standard project structure pattern. Covers moving code between modules, creating new packages, splitting large files, and maintaining tests during refactoring.
+Guide to refactoring existing Python projects to fit the standard project structure pattern. Covers moving code between modules, creating sub-packages only when genuinely needed, splitting large files, and maintaining tests during refactoring.
 
 ## Overview
 
 This skill helps you:
-- Reorganize monolithic Python code into proper packages
-- Move code to appropriate locations (`core/`, domain-specific subpackages)
+- Reorganize monolithic Python code into proper `src/` flat layout
+- Move code to appropriate locations (domain-specific files directly in `src/`)
+- Create sub-packages only when multiple files form a cohesive module
 - Split oversized files into focused modules
-- Create new packages with clear responsibilities
 - Maintain tests while refactoring
 - Update imports after reorganization
 
@@ -37,43 +37,41 @@ Ask yourself:
 
 | Symptom | Problem | Solution |
 |---------|---------|----------|
-| `cli.py` is 200+ lines | Too much logic in the CLI layer | Extract to `core/` modules |
-| Code duplicated across files | Not DRY | Create shared module in `core/` |
+| `main.py` is 200+ lines | Too much logic in the entry point | Extract to domain-specific modules in `src/` |
+| Code duplicated across files | Not DRY | Create shared module in `src/` |
 | File is 400+ lines | Too big, hard to test | Split into multiple focused files |
 | Module named `utils.py` or `helpers.py` | Too generic | Rename to domain-specific name |
-| Code used by multiple modules | Duplication | Move to shared `core/` module |
-| Bare `except:` or ignored errors | Poor error handling | Add custom exception types |
+| Code used by multiple modules | Duplication | Move to shared module in `src/` |
+| Bare `except:` or ignored errors | Poor error handling | Add custom exception types in `errors.py` |
 | No tests or low coverage | Not testable | Refactor for testability |
+| Sub-package with only one file | Unnecessary packaging | Flatten to `src/module.py` |
 
 ---
 
 ## Common Refactoring Patterns
 
-### Pattern 1: Extract Logic from cli.py to core/
+### Pattern 1: Extract Logic from main.py to Module
 
-**Situation**: Your `cli.py` has 200+ lines of business logic.
+**Situation**: Your `main.py` has 200+ lines of business logic.
 
 **Before**:
 ```
-src/project_name/
-├── __init__.py
-├── cli.py          ← 250 lines (too big!)
-└── core/
-    └── __init__.py
+src/
+├── main.py          ← 250 lines (too big!)
+└── errors.py
 ```
 
 **Steps**:
 
 1. **Create processor module**:
 ```bash
-touch src/project_name/core/processor.py
-touch src/project_name/core/errors.py
-touch tests/core/test_processor.py
+touch src/processor.py
+touch tests/test_processor.py
 ```
 
-2. **Define types and errors in `errors.py`**:
+2. **Define errors in `errors.py`** (if not already):
 ```python
-# src/project_name/core/errors.py
+# src/errors.py
 """Custom exception types."""
 
 
@@ -96,12 +94,12 @@ class ProcessingError(ProjectError):
 
 3. **Move business logic to `processor.py`**:
 ```python
-# src/project_name/core/processor.py
+# src/processor.py
 """Core processing logic."""
 
 from pathlib import Path
 
-from project_name.core.errors import ProcessingError, ValidationError
+from errors import ProcessingError, ValidationError
 
 
 def process(input_path: str) -> str:
@@ -121,14 +119,14 @@ def process(input_path: str) -> str:
 
 4. **Add tests**:
 ```python
-# tests/core/test_processor.py
-"""Tests for core.processor."""
+# tests/test_processor.py
+"""Tests for processor."""
 
 import pytest
 from pathlib import Path
 
-from project_name.core.processor import process
-from project_name.core.errors import ValidationError
+from processor import process
+from errors import ValidationError
 
 
 class TestProcess:
@@ -147,16 +145,23 @@ class TestProcess:
             process("/nonexistent/path.txt")
 ```
 
-5. **Update `cli.py`** (now thin):
+5. **Update `main.py`** (now thin):
 ```python
-# src/project_name/cli.py
+#!/usr/bin/env python3
 """Command-line interface."""
 
-import argparse
+import os
 import sys
+from pathlib import Path
 
-from project_name.core.processor import process
-from project_name.core.errors import ProcessingError, ValidationError
+_venv_python = Path(__file__).resolve().parent.parent / ".venv" / "bin" / "python"
+if _venv_python.exists() and Path(sys.executable).resolve() != _venv_python.resolve():
+    os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
+
+import argparse
+
+from processor import process
+from errors import ProcessingError, ValidationError
 
 
 def main() -> None:
@@ -173,6 +178,10 @@ def main() -> None:
     except ProcessingError as e:
         print(f"Processing failed: {e}", file=sys.stderr)
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
 ```
 
 6. **Verify and test**:
@@ -184,58 +193,51 @@ make typecheck
 
 **After**:
 ```
-src/project_name/
-├── __init__.py
-├── cli.py              ← Now ~30 lines
-└── core/
-    ├── __init__.py
-    ├── processor.py
-    └── errors.py
+src/
+├── main.py          ← ~30 lines (entry point only)
+├── processor.py     ← business logic
+└── errors.py        ← custom exceptions
 
 tests/
-├── test_cli.py
-└── core/
-    ├── __init__.py
-    └── test_processor.py
+├── test_main.py
+└── test_processor.py
 ```
 
 ---
 
 ### Pattern 2: Extract Duplicated Code into Shared Module
 
-**Situation**: Two CLI subcommands both have validation logic.
+**Situation**: Two scripts both have the same validation logic.
 
 **Before**:
 ```
-src/project_name/
-├── commands/
-│   ├── convert.py    ← Has validate_path() function
-│   └── export.py     ← Same validate_path() function (copied!)
+src/
+├── convert.py    ← Has validate_path() function
+└── export.py     ← Same validate_path() function (copied!)
 ```
 
 **Steps**:
 
 1. **Create shared module**:
 ```bash
-mkdir -p src/project_name/core
-touch src/project_name/core/validation.py
-touch tests/core/test_validation.py
+touch src/validation.py
+touch tests/test_validation.py
 ```
 
 2. **Compare the two implementations**:
 ```bash
-grep -A 10 "def validate_path" src/project_name/commands/convert.py
-grep -A 10 "def validate_path" src/project_name/commands/export.py
+grep -A 10 "def validate_path" src/convert.py
+grep -A 10 "def validate_path" src/export.py
 ```
 
 3. **Move common code to shared module**:
 ```python
-# src/project_name/core/validation.py
+# src/validation.py
 """Shared input validation."""
 
 from pathlib import Path
 
-from project_name.core.errors import ValidationError
+from errors import ValidationError
 
 
 def validate_path(path: str, *, must_exist: bool = True) -> Path:
@@ -250,8 +252,8 @@ def validate_path(path: str, *, must_exist: bool = True) -> Path:
 
 4. **Update `convert.py`**:
 ```python
-# src/project_name/commands/convert.py
-from project_name.core.validation import validate_path
+# src/convert.py
+from validation import validate_path
 
 def run(input_path: str) -> None:
     path = validate_path(input_path)
@@ -260,8 +262,8 @@ def run(input_path: str) -> None:
 
 5. **Update `export.py`** similarly:
 ```python
-# src/project_name/commands/export.py
-from project_name.core.validation import validate_path
+# src/export.py
+from validation import validate_path
 
 def run(input_path: str, output_path: str) -> None:
     src = validate_path(input_path)
@@ -276,25 +278,22 @@ make test
 
 **After**:
 ```
-src/project_name/
-├── commands/
-│   ├── convert.py      ← Uses shared validation
-│   └── export.py       ← Uses shared validation
-└── core/
-    ├── validation.py
-    └── validation_test.py  # → tests/core/test_validation.py
+src/
+├── convert.py      ← Uses shared validation
+├── export.py       ← Uses shared validation
+└── validation.py   ← Single source of truth
 ```
 
 ---
 
 ### Pattern 3: Split Oversized File
 
-**Situation**: `src/project_name/core/processor.py` is 450 lines.
+**Situation**: `src/processor.py` is 450 lines.
 
 **Before**:
 ```
-src/project_name/core/
-├── processor.py        ← 450 lines (too big!)
+src/
+├── processor.py    ← 450 lines (too big!)
 └── errors.py
 ```
 
@@ -302,24 +301,23 @@ src/project_name/core/
 - Loading/parsing input (100 lines)
 - Processing logic (200 lines)
 - Output formatting (100 lines)
-- Helpers (50 lines)
 
 **Steps**:
 
 1. **Create new files** for each concern:
 ```bash
-cd src/project_name/core
-touch loader.py formatter.py
+touch src/loader.py src/formatter.py
+touch tests/test_loader.py tests/test_formatter.py
 ```
 
 2. **Extract loader concern**:
 ```python
-# src/project_name/core/loader.py
+# src/loader.py
 """Input loading and parsing."""
 
 from pathlib import Path
 
-from project_name.core.errors import ProcessingError
+from errors import ProcessingError
 
 
 def load_input(path: str) -> list[str]:
@@ -332,7 +330,7 @@ def load_input(path: str) -> list[str]:
 
 3. **Extract formatting concern**:
 ```python
-# src/project_name/core/formatter.py
+# src/formatter.py
 """Output formatting."""
 
 
@@ -343,12 +341,12 @@ def format_result(items: list[str]) -> str:
 
 4. **Keep the main interface** in `processor.py` (now thin):
 ```python
-# src/project_name/core/processor.py
+# src/processor.py
 """Core processing logic."""
 
-from project_name.core.loader import load_input
-from project_name.core.formatter import format_result
-from project_name.core.errors import ProcessingError, ValidationError
+from loader import load_input
+from formatter import format_result
+from errors import ProcessingError, ValidationError
 
 
 def process(input_path: str) -> str:
@@ -357,33 +355,26 @@ def process(input_path: str) -> str:
         raise ValidationError("input_path", "cannot be empty")
 
     items = load_input(input_path)
-    # actual processing...
     processed = [item.strip() for item in items if item.strip()]
     return format_result(processed)
 ```
 
-5. **Create test files for new modules**:
-```bash
-touch tests/core/test_loader.py tests/core/test_formatter.py
-```
-
-6. **Verify**:
+5. **Verify**:
 ```bash
 make test
 make lint
-# Check line counts
-wc -l src/project_name/core/*.py
+wc -l src/*.py
 ```
 
 **After**:
 ```
-src/project_name/core/
-├── processor.py    ← ~30 lines (public interface)
-├── loader.py       ← ~30 lines (loading)
-├── formatter.py    ← ~30 lines (formatting)
+src/
+├── processor.py    ← ~20 lines (public interface)
+├── loader.py       ← ~20 lines (loading)
+├── formatter.py    ← ~15 lines (formatting)
 └── errors.py       ← ~20 lines (error types)
 
-tests/core/
+tests/
 ├── test_processor.py
 ├── test_loader.py
 └── test_formatter.py
@@ -393,13 +384,13 @@ tests/core/
 
 ### Pattern 4: Rename Generic Module to Domain-Specific
 
-**Situation**: You have `src/project_name/utils.py` with mixed utility functions.
+**Situation**: You have `src/utils.py` with mixed utility functions.
 
 **Problem**: Too generic. Functions belong to different domains.
 
 **Before**:
 ```
-src/project_name/
+src/
 └── utils.py   ← string helpers, path helpers, time helpers mixed
 ```
 
@@ -407,7 +398,7 @@ src/project_name/
 
 1. **Analyze what's in utils.py**:
 ```bash
-grep "^def " src/project_name/utils.py
+grep "^def " src/utils.py
 # Output:
 # def trim_whitespace(s: str) -> str:
 # def parse_duration(s: str) -> float:
@@ -416,16 +407,14 @@ grep "^def " src/project_name/utils.py
 
 2. **Create domain-specific modules**:
 ```bash
-mkdir -p src/project_name/io
-touch src/project_name/io/__init__.py
-touch src/project_name/io/paths.py
-touch src/project_name/core/text.py
-touch src/project_name/core/time_utils.py
+touch src/text.py
+touch src/time_utils.py
+touch src/paths.py
 ```
 
 3. **Move functions to appropriate modules**:
 ```python
-# src/project_name/core/text.py
+# src/text.py
 """Text processing utilities."""
 
 
@@ -433,7 +422,7 @@ def trim_whitespace(s: str) -> str:
     return s.strip()
 
 
-# src/project_name/core/time_utils.py
+# src/time_utils.py
 """Time parsing utilities."""
 
 
@@ -441,7 +430,7 @@ def parse_duration(s: str) -> float:
     ...
 
 
-# src/project_name/io/paths.py
+# src/paths.py
 """Path utilities."""
 
 from pathlib import Path
@@ -454,17 +443,17 @@ def join_paths(*paths: str) -> Path:
 4. **Update all imports** across the codebase:
 ```bash
 # Find all files importing from utils
-grep -r "from project_name.utils" src/ tests/
-grep -r "from project_name import utils" src/ tests/
+grep -r "from utils import" src/ tests/
+grep -r "import utils" src/ tests/
 
 # Update imports in each file
-# Old: from project_name.utils import trim_whitespace
-# New: from project_name.core.text import trim_whitespace
+# Old: from utils import trim_whitespace
+# New: from text import trim_whitespace
 ```
 
 5. **Delete old module**:
 ```bash
-rm src/project_name/utils.py
+rm src/utils.py
 ```
 
 6. **Test**:
@@ -475,17 +464,129 @@ make typecheck
 
 **After**:
 ```
-src/project_name/
-├── core/
-│   ├── text.py
-│   └── time_utils.py
-└── io/
-    └── paths.py
+src/
+├── text.py
+├── time_utils.py
+└── paths.py
 ```
 
 ---
 
-### Pattern 5: Create Proper Test Fixtures with conftest.py
+### Pattern 5: Flatten Unnecessary Sub-Package
+
+**Situation**: A sub-package has only one file and no real reason to be a package.
+
+**Before**:
+```
+src/
+└── models/
+    ├── __init__.py
+    └── item.py       ← only one file in this package
+```
+
+**Steps**:
+
+1. **Move the file up**:
+```bash
+mv src/models/item.py src/item.py
+rm src/models/__init__.py
+rmdir src/models/
+```
+
+2. **Update all imports**:
+```bash
+# Find all files importing from models
+grep -r "from models" src/ tests/
+grep -r "from models.item" src/ tests/
+
+# Old: from models.item import Item
+# New: from item import Item
+```
+
+3. **Update tests path**:
+```bash
+mv tests/models/test_item.py tests/test_item.py
+rmdir tests/models/
+```
+
+4. **Verify**:
+```bash
+make test
+```
+
+**After**:
+```
+src/
+└── item.py    ← flat, no unnecessary package wrapper
+```
+
+---
+
+### Pattern 6: Introduce Sub-Package When Truly Needed
+
+**Situation**: You have 5+ model files that should be grouped.
+
+**Before**:
+```
+src/
+├── user.py
+├── item.py
+├── order.py
+├── product.py
+└── invoice.py    ← 5 model-type files, hard to distinguish from logic files
+```
+
+**Steps**:
+
+1. **Create the sub-package**:
+```bash
+mkdir -p src/models
+touch src/models/__init__.py
+```
+
+2. **Move the files**:
+```bash
+mv src/user.py src/models/
+mv src/item.py src/models/
+mv src/order.py src/models/
+mv src/product.py src/models/
+mv src/invoice.py src/models/
+```
+
+3. **Update imports**:
+```bash
+# Old: from user import User
+# New: from models.user import User
+```
+
+4. **Move tests**:
+```bash
+mkdir -p tests/models
+touch tests/models/__init__.py
+mv tests/test_user.py tests/models/
+# etc.
+```
+
+5. **Verify**:
+```bash
+make test
+```
+
+**After**:
+```
+src/
+└── models/         ← justified: 5 cohesive model files
+    ├── __init__.py
+    ├── user.py
+    ├── item.py
+    ├── order.py
+    ├── product.py
+    └── invoice.py
+```
+
+---
+
+### Pattern 7: Create Proper Test Fixtures with conftest.py
 
 **Situation**: Tests have hardcoded data or scattered temporary files.
 
@@ -537,8 +638,6 @@ echo '{"name": "invalid"' > tests/fixtures/malformed.json
 3. **Add a fixture to load static files**:
 ```python
 # tests/conftest.py (continued)
-from pathlib import Path
-
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
@@ -551,10 +650,8 @@ def fixtures_dir() -> Path:
 4. **Update tests to use fixtures**:
 ```python
 # tests/test_processor.py
-"""Tests for processor."""
-
 from pathlib import Path
-from project_name.core.processor import process
+from processor import process
 
 
 class TestProcess:
@@ -574,9 +671,7 @@ tests/
 ├── fixtures/           ← Static test data files
 │   ├── valid.json
 │   └── malformed.json
-├── test_cli.py
-└── core/
-    └── test_processor.py
+└── test_processor.py
 ```
 
 ---
@@ -593,7 +688,7 @@ tests/
 - [ ] Move code to new location
 - [ ] Update imports in moved code
 - [ ] Update imports in code that uses moved code
-- [ ] Add/update `__init__.py` for new packages
+- [ ] Add/update `__init__.py` only for new sub-packages
 - [ ] Update test files and imports
 - [ ] Tests still pass (`make test`)
 
@@ -610,13 +705,13 @@ tests/
 
 ### Find all imports of a module
 ```bash
-grep -r "from project_name.utils" src/ tests/
-grep -r "import project_name" src/ tests/
+grep -r "from utils import" src/ tests/
+grep -r "import utils" src/ tests/
 ```
 
 ### Find all definitions in a file
 ```bash
-grep "^def \|^class " src/project_name/utils.py
+grep "^def \|^class " src/utils.py
 ```
 
 ### Check for unused imports
@@ -631,12 +726,12 @@ grep "^def \|^class " src/project_name/utils.py
 
 ### Run tests with coverage
 ```bash
-.venv/bin/pytest --cov=src/project_name --cov-report=term-missing
+.venv/bin/pytest --cov=src --cov-report=term-missing
 ```
 
 ### Run a specific test file
 ```bash
-.venv/bin/pytest tests/core/test_processor.py -v
+.venv/bin/pytest tests/test_processor.py -v
 ```
 
 ---
@@ -647,11 +742,11 @@ grep "^def \|^class " src/project_name/utils.py
 
 ```bash
 # ❌ BAD: Just move the file
-mv src/project_name/logic.py src/project_name/core/
+mv src/logic.py src/processor.py
 
 # ✅ GOOD: Move, update imports, then verify
-mv src/project_name/logic.py src/project_name/core/
-# Update all imports referencing the old path
+mv src/logic.py src/processor.py
+# Update all imports referencing the old name
 make test  # Verify tests pass
 ```
 
@@ -660,13 +755,13 @@ make test  # Verify tests pass
 ### ❌ Anti-Pattern 2: Partial Refactoring
 
 ```
-# ❌ BAD: Moved to core/ but left copy in root package
-src/project_name/processor.py      ← Old copy
-src/project_name/core/processor.py ← New copy
+# ❌ BAD: Moved logic but left original file
+src/processor.py      ← Old copy (still referenced!)
+src/new_processor.py  ← New copy
 
 # ✅ GOOD: Complete the refactoring
-rm src/project_name/processor.py
-# Keep only src/project_name/core/processor.py
+rm src/processor.py
+# Keep only src/new_processor.py with updated imports everywhere
 ```
 
 ---
@@ -675,10 +770,10 @@ rm src/project_name/processor.py
 
 ```python
 # ❌ BAD: Old import still used
-from project_name.utils import trim_whitespace
+from utils import trim_whitespace
 
 # ✅ GOOD: Updated import
-from project_name.core.text import trim_whitespace
+from text import trim_whitespace
 ```
 
 Run `make lint` and `make typecheck` to catch these.
@@ -702,7 +797,7 @@ git diff  # Only moves and import updates
 
 ```bash
 # ❌ BAD: Trust and hope
-mv src/project_name/core.py src/project_name/core/processor.py
+mv src/core.py src/processor.py
 git commit
 
 # ✅ GOOD: Verify at each step
@@ -714,16 +809,32 @@ git commit
 
 ---
 
-### ❌ Anti-Pattern 6: Missing `__init__.py`
+### ❌ Anti-Pattern 6: Missing `__init__.py` in Sub-Packages
 
 ```bash
-# ❌ BAD: New package directory without __init__.py
-mkdir src/project_name/io/
-# Forgot: touch src/project_name/io/__init__.py
+# ❌ BAD: New sub-package directory without __init__.py
+mkdir src/models/
+# Forgot: touch src/models/__init__.py
 
-# ✅ GOOD: Always create __init__.py for new packages
-mkdir src/project_name/io/
-touch src/project_name/io/__init__.py
+# ✅ GOOD: Always create __init__.py for new sub-packages
+mkdir src/models/
+touch src/models/__init__.py
+```
+
+---
+
+### ❌ Anti-Pattern 7: Creating Sub-Packages for a Single File
+
+```
+# ❌ BAD: Sub-package wrapping a single file
+src/
+└── validation/
+    ├── __init__.py
+    └── rules.py    ← only one file, no reason to be a package
+
+# ✅ GOOD: Single file directly in src/
+src/
+└── validation.py
 ```
 
 ---
@@ -731,13 +842,14 @@ touch src/project_name/io/__init__.py
 ## When to Call Claude with This Skill
 
 Use this skill when you want Claude to help with:
-- ✅ Moving code between modules/packages
+- ✅ Moving code between modules
 - ✅ Extracting logic from large files
-- ✅ Creating new packages from existing code
+- ✅ Creating sub-packages from existing code (only when justified)
+- ✅ Flattening unnecessary sub-packages
 - ✅ Splitting oversized files
 - ✅ Removing duplication across modules
 - ✅ Analyzing which code should move where
-- ✅ Updating imports after refactoring
+- ✅ Updating imports after reorganization
 
 ---
 
@@ -747,14 +859,3 @@ Use this skill when you want Claude to help with:
 - **git-workflow-go** — Refactoring changes should be separate, atomic commits (applies equally to Python)
 - **readme-bilingual-sync** — Update docs after significant structural changes
 
----
-
-## Changelog
-
-- **v1.0** (2026-03-13) — Initial version
-  - 5 common refactoring patterns with step-by-step guides
-  - Before/after examples
-  - Refactoring checklist
-  - Useful commands for refactoring
-  - Anti-patterns to avoid
-  - When to use this skill
