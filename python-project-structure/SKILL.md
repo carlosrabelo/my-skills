@@ -18,6 +18,7 @@ This skill explains a pragmatic Python project structure where the main source f
 - `.venv` is always at the project root — never inside `src/`
 - `pyproject.toml` is the single source of truth for metadata and dependencies
 - Main scripts live directly in `src/` — sub-packages only when a true module is needed
+- The main entry point can be named anything (`main.py`, `fetcher.py`, `cli.py`, etc.) — use a domain-specific name, not necessarily `main.py`
 - Scripts in `src/` use `../.venv` (one level up) for the self-relaunching shebag
 - Python version: **3.12.3**
 
@@ -44,7 +45,7 @@ project-name/
 ├── README-PT.md                  ← Portuguese documentation
 │
 ├── src/                          ← All Python source files
-│   ├── main.py                   ← Main entry point (executable, has shebag)
+│   ├── fetcher.py                ← Main entry point (domain-named, executable, has shebag)
 │   ├── processor.py              ← Core logic module
 │   └── errors.py                 ← Custom exception types
 │   └── models/                   ← Sub-package ONLY if there are multiple related modules
@@ -53,11 +54,13 @@ project-name/
 │
 └── tests/                        ← All tests (outside src/)
     ├── conftest.py               ← Pytest fixtures and configuration
-    ├── test_main.py
+    ├── test_fetcher.py
     ├── test_processor.py
     └── models/                   ← Mirror sub-packages from src/ if they exist
         └── test_item.py
 ```
+
+> The main entry point is named after what it does — `fetcher.py`, `cli.py`, `converter.py`, `scraper.py`, etc. Only use `main.py` if the project has no better domain name for the entry point.
 
 ### When to Create a Sub-Package in src/
 
@@ -120,7 +123,7 @@ python_version = "3.12"
 strict = true
 ```
 
-If the project has an installable package (sub-package in `src/`), add:
+If the project has an installable package (a sub-package inside `src/` with `__init__.py`), add:
 ```toml
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -128,6 +131,8 @@ where = ["src"]
 [project.scripts]
 project-name = "package_name.cli:main"
 ```
+
+> ⚠️ `packages.find` is only needed if you explicitly created a sub-package inside `src/` (with `__init__.py`) for pip distribution. For script-based projects, **do not add `packages.find`** — loose files in `src/` don't need it. Adding it does **not** mean you should create `src/project_name/`.
 
 ---
 
@@ -256,7 +261,7 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 #!/bin/bash
 set -euo pipefail
 
-SCRIPT_NAME="main.py"
+SCRIPT_NAME="fetcher.py"   # ← use the actual name of your entry point (e.g. fetcher.py, cli.py)
 BINARY_NAME="project-name"
 INSTALL_DIR="${HOME}/.local/bin"
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -377,14 +382,16 @@ from processor import process  # relative import from src/
 
 ### Files Directly in src/
 
-The main files of the project live directly in `src/`:
+The main files of the project live directly in `src/`. The entry point is named after what it does — use a domain-specific name, not necessarily `main.py`:
 
 ```
 src/
-├── main.py        ← Entry point: has shebag + arg parsing (thin)
+├── fetcher.py     ← Entry point: has shebag + arg parsing (thin). Name matches the domain.
 ├── processor.py   ← Core business logic
 └── errors.py      ← Custom exception types
 ```
+
+Use `main.py` only if no better name exists. Examples of good names: `fetcher.py`, `converter.py`, `scraper.py`, `cli.py`, `importer.py`.
 
 ### When to Add a Sub-Package
 
@@ -403,7 +410,9 @@ src/
 
 Do **not** create `utils/`, `helpers/`, `common/` — use domain-specific names.
 
-### `main.py` — Entry Point
+### Entry Point (`fetcher.py`, `cli.py`, or whatever fits the domain)
+
+Name the entry point after what it does. Only use `main.py` when no better name exists.
 
 ```python
 #!/usr/bin/env python3
@@ -702,19 +711,31 @@ git add .venv/
 # ✅ GOOD: .venv in .gitignore, reproducible via run/setup.sh
 ```
 
-### ❌ Anti-Pattern 2: Creating Unnecessary Sub-Packages
+### ❌ Anti-Pattern 2: Sub-Pacote com Nome do Projeto em src/
+
+This is the **most common mistake** when reorganizing a project or following setuptools docs.
 
 ```
-# ❌ BAD: wrapping everything in a package when flat files suffice
+# ❌ BAD: named sub-package — common error when adapting from setuptools examples
 src/
-└── project_name/
+└── ogaden/
     ├── __init__.py
     └── cli.py
 
-# ✅ GOOD: flat files directly in src/
+# ❌ BAD: any unnecessary wrapper package, regardless of name
 src/
-└── main.py
+└── project_name/
+    ├── __init__.py
+    └── main.py
+
+# ✅ GOOD: files go directly in src/, no wrapper package
+src/
+├── fetcher.py
+├── processor.py
+└── errors.py
 ```
+
+The rule: **never create `src/<project-name>/`**. Files live directly in `src/`, not wrapped in a named package.
 
 ### ❌ Anti-Pattern 3: Logic in main.py
 
@@ -800,8 +821,8 @@ src/reader.py
 - Always pin minimum versions (`>=`)
 
 ### 3. File Organization
-- Main files directly in `src/`
-- Sub-packages only when multiple files form a true module
+- Main files directly in `src/` — **never create `src/project_name/`**, this is the most common mistake when following setuptools docs
+- Sub-packages only when multiple files form a true module (e.g. `src/models/`)
 - Tests in `tests/`, mirroring `src/` structure
 
 ### 4. Testing
@@ -821,7 +842,7 @@ src/reader.py
 
 | Need | Location | Notes |
 |------|----------|-------|
-| Add new entry point | `src/new-script.py` | Thin: parse args, call modules |
+| Add new entry point | `src/domain-name.py` | Thin: parse args, call modules. Name after what it does. |
 | Add business logic | `src/processor.py` or domain-named file | Keep thin layers |
 | Add custom exception | `src/errors.py` | Extend `ProjectError` |
 | Add multiple related types | `src/models/` | Only if multiple files are needed |
@@ -844,8 +865,8 @@ make lint         # Check for issues
 make typecheck    # Type check
 make test         # Run tests
 
-# Run a script directly
-./src/main.py --help
+# Run a script directly (use the actual entry point name)
+./src/fetcher.py --help
 
 # Before committing
 make lint
