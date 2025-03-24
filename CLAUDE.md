@@ -1,10 +1,10 @@
 # my-skills
 
-Este é o repositório central de skills do Claude Code.
+Central repository for Claude Code skills. All skills are developed and edited here, then synced to `~/.claude/skills/` via `/sync-skills`.
 
-## Regras importantes
+## Rules
 
-- **Trabalhe skills SOMENTE aqui.** Nunca crie ou edite skills diretamente em `~/.claude/skills/`.
-- Após criar ou modificar uma skill, o usuário rodará `/sync-skills` manualmente para copiar as alterações para o diretório global. Não execute isso automaticamente.
-- A skill `sync-skills` é a única que existe exclusivamente neste projeto (em `.claude/skills/`) e não é copiada para o global.
-- **Nunca adicione seção `## Changelog`** em arquivos de skill — desperdiça tokens desnecessariamente.
+- **Edit skills ONLY in this repository.** Never create or edit skills directly in `~/.claude/skills/`.
+- **Do not run `/sync-skills` automatically.** The user runs it manually when they want to sync.
+- The `sync-skills` skill (in `.claude/skills/`) is exclusive to this project and is not copied to the global directory.
+- **Never add a `## Changelog` section** to skill files — it wastes tokens.

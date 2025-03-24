@@ -1,6 +1,6 @@
 ---
 name: go-project-structure
-description: Guide to organizing Go projects with go.mod in src/, dual Makefile hierarchy, cmd/, internal/, and bin/ directories. Covers anti-patterns, testing patterns, error handling, and works for multiple independent Go projects.
+description: Guide to organizing Go projects with go.mod at project root, single Makefile, cmd/, internal/, and bin/ directories. Covers anti-patterns, testing patterns, error handling, and works for multiple independent Go projects.
 mode: agent
 category: go
 shared: true
@@ -8,13 +8,13 @@ shared: true
 
 # Go Project Structure
 
-Comprehensive guide to organizing Go projects following a proven pattern for consistency, maintainability, and scalability across multiple independent projects.
+Comprehensive guide to organizing Go projects following modern Go conventions for consistency, maintainability, and scalability across multiple independent projects.
 
 ## Overview
 
-This skill explains a pragmatic Go project structure where all Go code lives in `src/` with its own `go.mod`, while the project root handles cross-cutting concerns. Uses a hierarchical Makefile approach: root Makefile for orchestration, `src/Makefile` for Go-specific operations.
+This skill explains a flat root Go project structure where `go.mod` lives at the project root alongside `cmd/`, `internal/`, and `testdata/`. A single root Makefile handles orchestration, while `run/` scripts do the actual build/test work.
 
-**Key principle**: This structure works for CLI tools, applications, and libraries—all your Go projects can follow the same pattern.
+**Key principle**: This structure follows the official Go module layout (go.dev/doc/modules/layout). All your Go projects — CLI tools, applications, and libraries — use the same pattern.
 
 ---
 
@@ -22,19 +22,20 @@ This skill explains a pragmatic Go project structure where all Go code lives in 
 
 ```
 project-name/
-├── Makefile                      ← Root Makefile (orchestrates everything)
-│                                   Uses: make -C src target
+├── Makefile                      ← Single Makefile (orchestrates everything)
 │
-├── bin/                          ← Compiled binaries (from any src build)
+├── go.mod                        ← Go module definition (ALWAYS at root)
+├── go.sum                        ← Dependency checksums
+│
+├── bin/                          ← Compiled binaries
 │   └── project-name              ← Executable after build
 │
 ├── cfg/                          ← Configuration files (optional)
 │   └── config.yaml               ← Default configuration
 │
 ├── run/                          ← Automation scripts
-│   ├── build.sh                  ← Build script (cd src && go build)
+│   ├── build.sh                  ← Build script (go build)
 │   ├── test.sh                   ← Test script
-│   ├── clean.sh                  ← Clean script
 │   ├── install.sh                ← Install script
 │   └── uninstall.sh              ← Uninstall script
 │
@@ -42,35 +43,27 @@ project-name/
 ├── README.md                     ← English documentation
 ├── README-PT.md                  ← Portuguese documentation
 │
-└── src/                          ← All Go source code
-    ├── Makefile                  ← Go-specific targets (build, test, lint)
-    │
-    ├── go.mod                    ← Go module definition (ALWAYS HERE)
-    ├── go.sum                    ← Dependency checksums
-    │
-    ├── cmd/                      ← Executable entry points
-    │   └── project-name/         ← Main command
-    │       ├── main.go           ← Entry point
-    │       ├── main_test.go      ← Tests
-    │       └── *.go              ← Implementation files
-    │
-    ├── internal/                 ← Internal packages (not importable)
-    │   ├── package-one/          ← Reusable logic
-    │   │   ├── types.go          ← Type definitions
-    │   │   ├── logic.go          ← Core logic
-    │   │   ├── logic_test.go     ← Tests
-    │   │   └── errors.go         ← Error types
-    │   │
-    │   └── package-two/          ← Another package
-    │       ├── types.go
-    │       ├── handler.go
-    │       └── handler_test.go
-    │
-    ├── testdata/                 ← Test fixtures and data
-    │   ├── input.json
-    │   └── expected.json
-    │
-    └── .gitignore                ← Go-specific ignores
+├── cmd/                          ← Executable entry points
+│   └── project-name/             ← Main command
+│       ├── main.go               ← Entry point
+│       ├── main_test.go          ← Tests
+│       └── *.go                  ← Implementation files
+│
+├── internal/                     ← Internal packages (not importable)
+│   ├── package-one/              ← Reusable logic
+│   │   ├── types.go              ← Type definitions
+│   │   ├── logic.go              ← Core logic
+│   │   ├── logic_test.go         ← Tests
+│   │   └── errors.go             ← Error types
+│   │
+│   └── package-two/              ← Another package
+│       ├── types.go
+│       ├── handler.go
+│       └── handler_test.go
+│
+└── testdata/                     ← Test fixtures and data
+    ├── input.json
+    └── expected.json
 ```
 
 ---
@@ -127,8 +120,8 @@ timeout: 30
 
 **Common scripts**:
 ```bash
-./run/build.sh       # Compile the project (cd src && go build)
-./run/test.sh        # Run all tests (cd src && go test)
+./run/build.sh       # Compile the project (go build)
+./run/test.sh        # Run all tests (go test)
 ./run/install.sh     # Install binary to ~/.local/bin
 ./run/uninstall.sh   # Remove installed binary
 ```
@@ -148,37 +141,20 @@ BINARY_NAME="project-name"
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 mkdir -p "$ROOT_DIR/bin"
-cd "$ROOT_DIR/src"
+cd "$ROOT_DIR"
 go build -o "$ROOT_DIR/bin/$BINARY_NAME" "./cmd/$BINARY_NAME"
 echo "Binary ready at: $ROOT_DIR/bin/$BINARY_NAME"
 ```
 
 ---
 
-### `src/` — All Go Code Lives Here
-
-**Purpose**: Container for all Go source code.
-
-**Why separate from root**:
-- Keeps Go-specific files organized
-- Root can have non-Go files (docs, assets, etc)
-- Scales well across multiple independent projects
-
-**Key files**:
-- **`go.mod`** — Module definition (ALWAYS in `src/`, never in root)
-- **`go.sum`** — Dependency checksums
-- **`Makefile`** — Go-specific build targets (see "Makefile Hierarchy" section)
-- **`cmd/`, `internal/`, `testdata/`** — See dedicated sections below
-
----
-
-### `src/cmd/` — Command Executables
+### `cmd/` — Command Executables
 
 **Purpose**: Entry points for CLI commands. Each subdirectory = one executable.
 
 **Structure**:
 ```
-src/cmd/
+cmd/
 ├── main-command/         ← First executable
 │   ├── main.go           ← Entry point (≤50 lines)
 │   ├── flags.go          ← Flag parsing
@@ -229,13 +205,13 @@ func main() {
 
 ---
 
-### `src/internal/` — Reusable Internal Packages
+### `internal/` — Reusable Internal Packages
 
 **Purpose**: Code that's reusable within the project but not importable externally.
 
 **Structure**:
 ```
-src/internal/
+internal/
 ├── discovery/           ← Example: Find/detect things
 │   ├── types.go         ← Type definitions
 │   ├── discover.go      ← Core logic
@@ -268,13 +244,13 @@ src/internal/
 
 ---
 
-### `src/testdata/` — Test Fixtures
+### `testdata/` — Test Fixtures
 
 **Purpose**: Store test data files (JSON, YAML, CSV, etc).
 
 **Structure**:
 ```
-src/testdata/
+testdata/
 ├── input/
 │   ├── valid.json
 │   └── invalid.json
@@ -299,52 +275,20 @@ func TestProcess(t *testing.T) {
 
 ---
 
-## Makefile Hierarchy
+## Single Makefile
 
-Two Makefiles work in tandem. Keep them **simple and focused** — no unnecessary complexity.
+One Makefile at the project root. Keep it **simple and focused** — no unnecessary complexity.
 
-### src/ Makefile
-
-**Purpose**: Go-specific dev tools only. Stays lean: lint, fmt, clean.
-
-**Location**: `./src/Makefile`
-
-**Targets** (only these — nothing else):
-```bash
-make lint               # Run linter
-make fmt                # Format code (gofmt)
-make clean              # Remove Go build artifacts
-```
-
-**No build/test/install here** — build and test are handled by `run/` scripts, install/uninstall by root Makefile.
-
-**Example src/Makefile**:
-```makefile
-.PHONY: lint fmt clean
-
-lint:
-	go vet ./...
-
-fmt:
-	go fmt ./...
-
-clean:
-	go clean
-```
-
-### Root Makefile
-
-**Purpose**: Single entry point for all operations. Delegates build/test to `run/` scripts, Go dev tools to `src/Makefile`.
+**Purpose**: Single entry point for all operations. Delegates build/test to `run/` scripts.
 
 **Location**: `./Makefile` (project root)
 
 **Pattern**:
 - `build`, `test` → delegate to `./run/build.sh`, `./run/test.sh` (scripts do the real work)
 - `install`, `uninstall` → delegate to `./run/install.sh`, `./run/uninstall.sh`
-- `lint`, `fmt` → delegate to `make -C src lint/fmt`
-- `clean` → `make -C src clean` + `rm -rf bin/`
+- `lint`, `fmt`, `clean` → run Go commands directly
 
-**Example root Makefile**:
+**Example Makefile**:
 ```makefile
 MAKEFLAGS += --no-print-directory
 
@@ -359,13 +303,13 @@ test:
 	./run/test.sh
 
 lint:
-	make -C src lint
+	go vet ./...
 
 fmt:
-	make -C src fmt
+	go fmt ./...
 
 clean:
-	make -C src clean
+	go clean
 	rm -rf bin/
 
 install: build
@@ -389,18 +333,18 @@ help:
 
 **Key principles**:
 - Root Makefile is the single entry point for all operations
-- `build` and `test` delegate to `run/` scripts — never call `make -C src build` from root
-- Use `make -C src` for lint/fmt only
-- Keep both Makefiles short and readable
+- `build` and `test` delegate to `run/` scripts
+- `lint`, `fmt`, `clean` run Go commands directly (no second Makefile needed)
+- Keep it short and readable
 
 ---
 
 ## run/ — Shell Scripts
 
-`run/` scripts are an **integral part** of the project structure — not an alternative to Makefiles. They do the actual build/test work directly, while the root Makefile simply invokes them.
+`run/` scripts are an **integral part** of the project structure — not an alternative to the Makefile. They do the actual build/test work, while the root Makefile simply invokes them.
 
 **Convention**:
-- Scripts execute `cd src && go ...` directly — they do not delegate to `make`
+- Scripts execute `cd "$ROOT_DIR" && go ...` directly — they do not delegate to `make`
 - Always start with `set -euo pipefail`
 - Keep scripts focused and executable (`chmod +x`)
 - Name clearly by purpose
@@ -408,7 +352,7 @@ help:
 **Standard scripts**:
 ```bash
 run/
-├── build.sh       # Build binary to ../bin/
+├── build.sh       # Build binary to bin/
 ├── test.sh        # Run all tests
 ├── install.sh     # Install to ~/.local/bin
 └── uninstall.sh   # Remove from ~/.local/bin
@@ -423,7 +367,7 @@ BINARY_NAME="project-name"
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 mkdir -p "$ROOT_DIR/bin"
-cd "$ROOT_DIR/src"
+cd "$ROOT_DIR"
 go build -o "$ROOT_DIR/bin/$BINARY_NAME" "./cmd/$BINARY_NAME"
 echo "Binary ready at: $ROOT_DIR/bin/$BINARY_NAME"
 ```
@@ -435,7 +379,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-cd "$ROOT_DIR/src"
+cd "$ROOT_DIR"
 go test -v ./...
 ```
 
@@ -470,7 +414,7 @@ echo "Removed: $INSTALL_DIR/$BINARY_NAME"
 
 ### Module Definition
 
-**Location**: `src/go.mod`
+**Location**: `go.mod` (project root)
 
 Your `go.mod` file defines the module path. Always use the GitHub-based pattern:
 
@@ -493,14 +437,11 @@ Once `go.mod` is defined, imports within your project work like this:
 // In any Go file
 import "github.com/carlosrabelo/project/internal/processor"
 import "github.com/carlosrabelo/project/cmd/main"
-
-// NOT "github.com/carlosrabelo/project/src/internal/processor"
-// The src/ directory is invisible to imports
 ```
 
 **Example**:
 ```go
-// src/cmd/main/main.go
+// cmd/main/main.go
 package main
 
 import (
@@ -514,7 +455,7 @@ func main() {
 }
 ```
 
-**Key point**: The import path **does not include `src/`** even though code is physically in `src/`. Go determines the module root from `go.mod` location.
+**Key point**: The import path mirrors the directory structure directly from the module root.
 
 ---
 
@@ -551,14 +492,14 @@ type Result struct {...}
 Tests live in the same package and directory as source:
 
 ```
-src/internal/processor/
+internal/processor/
 ├── process.go          ← Implementation
 ├── process_test.go     ← Tests for process.go
 ├── types.go            ← Type definitions
 ├── types_test.go       ← Tests for types (if complex)
 └── errors.go           ← Error types
 
-src/cmd/main/
+cmd/main/
 ├── main.go             ← Entry point
 ├── main_test.go        ← Integration tests
 └── flags.go            ← Flag parsing
@@ -568,7 +509,7 @@ src/cmd/main/
 
 **Option 1: Centralized (for small packages)**
 ```
-src/internal/config/
+internal/config/
 ├── types.go            ← All types here
 ├── load.go             ← Config loading logic
 └── load_test.go
@@ -576,7 +517,7 @@ src/internal/config/
 
 **Option 2: Distributed (for larger packages)**
 ```
-src/internal/processor/
+internal/processor/
 ├── types.go            ← Core types
 ├── process.go          ← Type Processor + logic
 ├── process_test.go
@@ -654,10 +595,11 @@ func TestProcessFile(t *testing.T) {
 
 ```bash
 # Run with coverage
-make -C src test-coverage
+go test -coverprofile=coverage.out ./...
 
 # View HTML report
-open src/coverage.html
+go tool cover -html=coverage.out -o coverage.html
+open coverage.html
 ```
 
 Aim for:
@@ -674,7 +616,7 @@ Aim for:
 Define custom error types in `internal/` packages:
 
 ```go
-// src/internal/processor/errors.go
+// internal/processor/errors.go
 package processor
 
 import "fmt"
@@ -783,7 +725,32 @@ func main() {
 
 ## Anti-Patterns: What NOT to Do
 
-### ❌ Anti-Pattern 1: Main Package Logic
+### ❌ Anti-Pattern 1: Putting go.mod in a Subdirectory
+
+Don't nest `go.mod` inside `src/` or any other subdirectory:
+
+```
+# ❌ BAD: go.mod in src/ (legacy GOPATH-era pattern)
+project/
+├── Makefile
+└── src/
+    ├── go.mod          ← Wrong location
+    ├── cmd/
+    └── internal/
+
+# ✅ GOOD: go.mod at project root
+project/
+├── Makefile
+├── go.mod              ← Correct: project root
+├── cmd/
+└── internal/
+```
+
+The `src/` layout is a leftover from the `$GOPATH` era. Modern Go (with modules) expects `go.mod` at the project root. The official Go documentation (go.dev/doc/modules/layout) explicitly recommends flat root layouts.
+
+---
+
+### ❌ Anti-Pattern 2: Main Package Logic
 
 Don't put business logic in `main.go`:
 
@@ -833,7 +800,7 @@ func main() {
 
 ---
 
-### ❌ Anti-Pattern 2: Ignoring Errors Silently
+### ❌ Anti-Pattern 3: Ignoring Errors Silently
 
 Never ignore errors without good reason:
 
@@ -863,21 +830,21 @@ if err := processor.Process(config); err != nil {
 
 ---
 
-### ❌ Anti-Pattern 3: Generic Package Names
+### ❌ Anti-Pattern 4: Generic Package Names
 
 Avoid `utils/`, `helpers/`, `common/`:
 
 ```go
 // ❌ BAD: Generic names
-src/internal/utils/
-src/internal/helpers/
-src/internal/common/
+internal/utils/
+internal/helpers/
+internal/common/
 ```
 
 **✅ GOOD: Specific, domain-driven names**
 
 ```go
-src/internal/
+internal/
 ├── config/      // Configuration loading
 ├── processor/   // Data processing
 ├── discovery/   // System discovery
@@ -886,7 +853,7 @@ src/internal/
 
 ---
 
-### ❌ Anti-Pattern 4: Panicking in Production Code
+### ❌ Anti-Pattern 5: Panicking in Production Code
 
 Never use `panic()` in libraries or internal packages:
 
@@ -918,20 +885,20 @@ Exception: `panic()` is acceptable only in `main.go` for truly unrecoverable sce
 
 ---
 
-### ❌ Anti-Pattern 5: Mixing Concerns in One File
+### ❌ Anti-Pattern 6: Mixing Concerns in One File
 
 Keep files focused on one responsibility:
 
 ```go
 // ❌ BAD: Multiple concerns in one file
-src/internal/processor/
+internal/processor/
 └── everything.go  // Config loading, validation, processing, output formatting
 ```
 
 **✅ GOOD: Separate by concern**
 
 ```go
-src/internal/processor/
+internal/processor/
 ├── types.go       // Type definitions
 ├── config.go      // Configuration loading
 ├── validate.go    // Validation logic
@@ -941,7 +908,7 @@ src/internal/processor/
 
 ---
 
-### ❌ Anti-Pattern 6: Not Testing Edge Cases
+### ❌ Anti-Pattern 7: Not Testing Edge Cases
 
 Don't just test the happy path:
 
@@ -987,6 +954,30 @@ func TestProcess(t *testing.T) {
 
 ---
 
+### ❌ Anti-Pattern 8: Two Makefiles
+
+Don't use a second Makefile in a subdirectory:
+
+```
+# ❌ BAD: Dual Makefile hierarchy
+project/
+├── Makefile          ← Root: delegates with make -C src
+└── src/
+    └── Makefile      ← Second Makefile for Go targets
+```
+
+**✅ GOOD: Single Makefile at root**
+
+```
+project/
+├── Makefile          ← Single Makefile handles everything
+├── go.mod
+├── cmd/
+└── internal/
+```
+
+---
+
 ## Key Principles
 
 ### 1. Clear Separation of Concerns
@@ -1000,12 +991,12 @@ func TestProcess(t *testing.T) {
 
 ### 2. Package Naming
 
-Package name matches directory name (without `src/` in the name):
+Package name matches directory name:
 
 ```
-src/internal/setup/    → package setup
-src/internal/config/   → package config
-src/cmd/main/          → package main
+internal/setup/    → package setup
+internal/config/   → package config
+cmd/main/          → package main
 ```
 
 ### 3. Testing
@@ -1033,9 +1024,9 @@ Run with `make test` or `go test ./...`
 
 ### 6. Go Module Location
 
-- **`src/go.mod`** — Always here, never in root
-- **`src/go.sum`** — Always here, never in root
-- Root `Makefile` calls `make -C src` for Go operations
+- **`go.mod`** — Always at project root
+- **`go.sum`** — Always at project root
+- Single root Makefile for all operations
 
 ---
 
@@ -1043,12 +1034,12 @@ Run with `make test` or `go test ./...`
 
 | Need | Location | Notes |
 |------|----------|-------|
-| Add new CLI command | `src/cmd/command-name/` | One binary per directory |
-| Add reusable logic | `src/internal/package-name/` | Used by multiple commands |
+| Add new CLI command | `cmd/command-name/` | One binary per directory |
+| Add reusable logic | `internal/package-name/` | Used by multiple commands |
 | Add default configuration | `cfg/config.yaml` | Only if config needed |
-| Add build script | `run/script-name.sh` | Delegates to Makefiles |
-| Add test fixtures | `src/testdata/` | JSON, YAML, CSV, etc |
-| Add library for external use | `src/pkg/library-name/` | Only for publishable libs |
+| Add build script | `run/script-name.sh` | Delegates to Go commands |
+| Add test fixtures | `testdata/` | JSON, YAML, CSV, etc |
+| Add library for external use | `pkg/library-name/` | Only for publishable libs |
 
 ---
 
@@ -1058,16 +1049,16 @@ Run with `make test` or `go test ./...`
 
 ```
 Step 1: Create internal package
-  mkdir -p src/internal/validator
+  mkdir -p internal/validator
 
 Step 2: Create files
-  src/internal/validator/types.go           ← Type definitions
-  src/internal/validator/validate.go        ← Validation logic
-  src/internal/validator/validate_test.go   ← Tests
-  src/internal/validator/errors.go          ← Error types
+  internal/validator/types.go           ← Type definitions
+  internal/validator/validate.go        ← Validation logic
+  internal/validator/validate_test.go   ← Tests
+  internal/validator/errors.go          ← Error types
 
 Step 3: Update command to use it
-  src/cmd/main/main.go
+  cmd/main/main.go
   import "github.com/carlosrabelo/project/internal/validator"
 
   // In main():
@@ -1076,10 +1067,10 @@ Step 3: Update command to use it
   }
 
 Step 4: Add tests
-  cd src && make test
+  go test ./...
 
 Step 5: Verify structure
-  cd src && tree -I 'vendor|go.sum' -L 3
+  tree -I 'vendor|go.sum' -L 3
 ```
 
 ---
@@ -1132,42 +1123,40 @@ Step 5: Verify structure
 
 ## Example Project Structure
 
-### Simple CLI Tool (Makalu-like)
+### Simple CLI Tool
 
 ```
 makalu/
 ├── Makefile
+├── go.mod
 ├── bin/
 ├── cfg/                  (optional)
 ├── run/
 │   ├── build.sh
 │   └── test.sh
 ├── README.md
-└── src/
-    ├── Makefile
-    ├── go.mod
-    ├── cmd/
-    │   └── makalu/
-    │       ├── main.go
-    │       ├── flags.go
-    │       └── main_test.go
-    └── internal/
-        ├── discovery/
-        │   ├── types.go
-        │   ├── discover.go
-        │   └── discover_test.go
-        ├── inventory/
-        │   ├── types.go
-        │   ├── catalog.go
-        │   └── catalog_test.go
-        ├── diff/
-        │   ├── types.go
-        │   ├── compare.go
-        │   └── compare_test.go
-        └── suggestion/
-            ├── types.go
-            ├── suggest.go
-            └── suggest_test.go
+├── cmd/
+│   └── makalu/
+│       ├── main.go
+│       ├── flags.go
+│       └── main_test.go
+└── internal/
+    ├── discovery/
+    │   ├── types.go
+    │   ├── discover.go
+    │   └── discover_test.go
+    ├── inventory/
+    │   ├── types.go
+    │   ├── catalog.go
+    │   └── catalog_test.go
+    ├── diff/
+    │   ├── types.go
+    │   ├── compare.go
+    │   └── compare_test.go
+    └── suggestion/
+        ├── types.go
+        ├── suggest.go
+        └── suggest_test.go
 ```
 
 ### Larger Application
@@ -1175,6 +1164,8 @@ makalu/
 ```
 app/
 ├── Makefile
+├── go.mod
+├── go.sum
 ├── bin/
 ├── cfg/
 │   └── config.yaml
@@ -1185,46 +1176,42 @@ app/
 ├── LICENSE
 ├── README.md
 ├── README-PT.md
-└── src/
-    ├── Makefile
-    ├── go.mod
-    ├── go.sum
-    ├── cmd/
-    │   ├── main-app/
-    │   │   ├── main.go
-    │   │   ├── flags.go
-    │   │   ├── commands.go
-    │   │   └── main_test.go
-    │   └── tools/
-    │       ├── main.go
-    │       └── main_test.go
-    ├── internal/
-    │   ├── api/
-    │   │   ├── server.go
-    │   │   ├── handlers.go
-    │   │   ├── handlers_test.go
-    │   │   └── errors.go
-    │   ├── config/
-    │   │   ├── load.go
-    │   │   ├── load_test.go
-    │   │   └── types.go
-    │   ├── storage/
-    │   │   ├── db.go
-    │   │   ├── db_test.go
-    │   │   ├── queries.go
-    │   │   └── types.go
-    │   └── services/
-    │       ├── processor.go
-    │       ├── processor_test.go
-    │       ├── validator.go
-    │       └── validator_test.go
-    └── testdata/
-        ├── input/
-        │   ├── valid.json
-        │   └── invalid.json
-        └── expected/
-            ├── output.json
-            └── error.txt
+├── cmd/
+│   ├── main-app/
+│   │   ├── main.go
+│   │   ├── flags.go
+│   │   ├── commands.go
+│   │   └── main_test.go
+│   └── tools/
+│       ├── main.go
+│       └── main_test.go
+├── internal/
+│   ├── api/
+│   │   ├── server.go
+│   │   ├── handlers.go
+│   │   ├── handlers_test.go
+│   │   └── errors.go
+│   ├── config/
+│   │   ├── load.go
+│   │   ├── load_test.go
+│   │   └── types.go
+│   ├── storage/
+│   │   ├── db.go
+│   │   ├── db_test.go
+│   │   ├── queries.go
+│   │   └── types.go
+│   └── services/
+│       ├── processor.go
+│       ├── processor_test.go
+│       ├── validator.go
+│       └── validator_test.go
+└── testdata/
+    ├── input/
+    │   ├── valid.json
+    │   └── invalid.json
+    └── expected/
+        ├── output.json
+        └── error.txt
 ```
 
 ---
@@ -1236,8 +1223,8 @@ app/
 # From project root
 make build
 
-# Or directly in src
-cd src && make build
+# Or directly
+go build -o bin/project-name ./cmd/project-name
 ```
 
 ### Testing
@@ -1245,9 +1232,9 @@ cd src && make build
 # From project root
 make test
 
-# Or directly in src
-cd src && make test
-cd src && make test-coverage
+# Or directly
+go test -v ./...
+go test -coverprofile=coverage.out ./...
 ```
 
 ### Installing
@@ -1267,12 +1254,6 @@ make lint                    # Run linter
 make test                    # Run tests
 make build                   # Build binary
 ./bin/project-name --help    # Test it
-
-# Quick Go dev loop (inside src/ directly)
-cd src
-go fmt ./...
-go vet ./...
-go test ./...
 ```
 
 ---
@@ -1295,16 +1276,14 @@ bin/
 Thumbs.db
 
 # Go
-src/coverage.out
-src/coverage.html
+coverage.out
+coverage.html
 ```
-
-The `src/` directory should be committed (including `go.mod` and `go.sum`).
 
 ---
 
 ## Related Skills
 
-- **go-reorganize-refactor** — For restructuring code within this pattern
+- **go-project-reorganizer** — For restructuring code within this pattern (invoke manually with `/go-project-reorganizer`)
 - **go-commenting-en** — For consistent English comments throughout
 - **git-workflow-go** — For atomic commits and clean history in Go projects

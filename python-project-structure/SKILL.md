@@ -1,6 +1,6 @@
 ---
 name: python-project-structure
-description: Guide to organizing Python projects with pyproject.toml, .venv, src/ layout, Makefile hierarchy, and run/ scripts. Main files live directly in src/, sub-packages only when truly needed. Covers shebag using ../.venv, testing patterns, error handling.
+description: Guide to organizing Python projects with pyproject.toml, .venv, flat root layout (no src/), Makefile hierarchy, and run/ scripts. Source files live at project root, sub-packages only when truly needed. Covers shebag using .venv, testing patterns, error handling.
 mode: agent
 category: python
 shared: true
@@ -12,14 +12,14 @@ Comprehensive guide to organizing Python projects following a consistent pattern
 
 ## Overview
 
-This skill explains a pragmatic Python project structure where the main source files live directly in `src/`, the virtual environment stays at the project root as `.venv`, and `pyproject.toml` defines the project. Uses a hierarchical Makefile approach: root Makefile for orchestration, `run/` scripts for the actual work.
+This skill explains a pragmatic Python project structure where source files live directly at the project root, the virtual environment stays as `.venv`, and `pyproject.toml` defines the project. Uses a hierarchical Makefile approach: root Makefile for orchestration, `run/` scripts for the actual work.
 
 **Key principles**:
-- `.venv` is always at the project root — never inside `src/`
+- `.venv` is always at the project root — a sibling of the source files
 - `pyproject.toml` is the single source of truth for metadata and dependencies
-- Main scripts live directly in `src/` — sub-packages only when a true module is needed
+- Source files live directly at the project root — sub-packages only when a true module is needed
 - The main entry point can be named anything (`main.py`, `fetcher.py`, `cli.py`, etc.) — use a domain-specific name, not necessarily `main.py`
-- Scripts in `src/` use `../.venv` (one level up) for the self-relaunching shebag
+- Scripts at the project root use `.venv` (same directory) for the self-relaunching shebag
 - Python version: **3.12.3**
 
 ---
@@ -44,27 +44,26 @@ project-name/
 ├── README.md                     ← English documentation
 ├── README-PT.md                  ← Portuguese documentation
 │
-├── src/                          ← All Python source files
-│   ├── fetcher.py                ← Main entry point (domain-named, executable, has shebag)
-│   ├── processor.py              ← Core logic module
-│   └── errors.py                 ← Custom exception types
-│   └── models/                   ← Sub-package ONLY if there are multiple related modules
-│       ├── __init__.py
-│       └── item.py
+├── fetcher.py                    ← Main entry point (domain-named, executable, has shebag)
+├── processor.py                  ← Core logic module
+├── errors.py                     ← Custom exception types
+├── models/                       ← Sub-package ONLY if there are multiple related modules
+│   ├── __init__.py
+│   └── item.py
 │
-└── tests/                        ← All tests (outside src/)
+└── tests/                        ← All tests
     ├── conftest.py               ← Pytest fixtures and configuration
     ├── test_fetcher.py
     ├── test_processor.py
-    └── models/                   ← Mirror sub-packages from src/ if they exist
+    └── models/                   ← Mirror sub-packages if they exist
         └── test_item.py
 ```
 
 > The main entry point is named after what it does — `fetcher.py`, `cli.py`, `converter.py`, `scraper.py`, etc. Only use `main.py` if the project has no better domain name for the entry point.
 
-### When to Create a Sub-Package in src/
+### When to Create a Sub-Package
 
-Only create a sub-folder inside `src/` when:
+Only create a sub-folder at the project root when:
 - It groups **multiple files** that form a cohesive module (e.g., `models/`, `api/`)
 - It needs an `__init__.py` to be importable as a package
 - A single file would become too large or have mixed concerns
@@ -77,7 +76,7 @@ Only create a sub-folder inside `src/` when:
 
 ### `pyproject.toml` — Project Definition
 
-**Location**: Project root (never inside `src/`).
+**Location**: Project root.
 
 **Purpose**: Single file for metadata, dependencies, build system, and tool configuration.
 
@@ -109,10 +108,11 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 addopts = "-v --tb=short"
 
 [tool.ruff]
-src = ["src"]
+src = ["."]
 line-length = 88
 
 [tool.ruff.lint]
@@ -123,16 +123,7 @@ python_version = "3.12"
 strict = true
 ```
 
-If the project has an installable package (a sub-package inside `src/` with `__init__.py`), add:
-```toml
-[tool.setuptools.packages.find]
-where = ["src"]
-
-[project.scripts]
-project-name = "package_name.cli:main"
-```
-
-> ⚠️ `packages.find` is only needed if you explicitly created a sub-package inside `src/` (with `__init__.py`) for pip distribution. For script-based projects, **do not add `packages.find`** — loose files in `src/` don't need it. Adding it does **not** mean you should create `src/project_name/`.
+> ⚠️ For script-based projects, **do not add `packages.find`** — loose files at the project root don't need it.
 
 ---
 
@@ -170,6 +161,8 @@ pip install ".[dev]"
 ```makefile
 MAKEFLAGS += --no-print-directory
 
+PY_FILES := $(wildcard *.py)
+
 .PHONY: setup test lint fmt typecheck clean install help
 
 setup:
@@ -182,13 +175,13 @@ lint:
 	./run/lint.sh
 
 fmt:
-	.venv/bin/ruff format src/ tests/
+	.venv/bin/ruff format $(PY_FILES) tests/
 
 typecheck:
-	.venv/bin/mypy src/
+	.venv/bin/mypy $(PY_FILES)
 
 clean:
-	rm -rf dist/ build/ *.egg-info src/*.egg-info
+	rm -rf dist/ build/ *.egg-info
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 
@@ -253,7 +246,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-"$ROOT_DIR/.venv/bin/ruff" check src/ tests/
+"$ROOT_DIR/.venv/bin/ruff" check "$ROOT_DIR"/*.py tests/
 ```
 
 **Example `run/install.sh`**:
@@ -266,7 +259,7 @@ BINARY_NAME="project-name"
 INSTALL_DIR="${HOME}/.local/bin"
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-cp "$ROOT_DIR/src/$SCRIPT_NAME" "$INSTALL_DIR/$BINARY_NAME"
+cp "$ROOT_DIR/$SCRIPT_NAME" "$INSTALL_DIR/$BINARY_NAME"
 chmod +x "$INSTALL_DIR/$BINARY_NAME"
 echo "Installed: $INSTALL_DIR/$BINARY_NAME"
 ```
@@ -275,24 +268,24 @@ echo "Installed: $INSTALL_DIR/$BINARY_NAME"
 
 ## Shebags and .venv
 
-Python scripts in `src/` meant to be run directly (e.g. `./src/main.py`) must point to the right interpreter. On Linux, shebags **must be absolute paths** — relative paths like `#!../.venv/bin/python` are not supported by the kernel.
+Python scripts at the project root meant to be run directly (e.g. `./fetcher.py`) must point to the right interpreter. On Linux, shebags **must be absolute paths** — relative paths like `#!.venv/bin/python` are not supported by the kernel.
 
-The solution is the **self-relaunching pattern**: the script starts with the system Python, detects `.venv` at the project root (`..` relative to `src/`), and re-executes itself using the `.venv` interpreter if not already running inside it.
+The solution is the **self-relaunching pattern**: the script starts with the system Python, detects `.venv` in the same directory, and re-executes itself using the `.venv` interpreter if not already running inside it.
 
 ### The Self-Relaunching Pattern
 
-Scripts live in `src/`, so `.venv` is one level up (`parent.parent`):
+Scripts live at the project root, so `.venv` is a sibling (`parent`):
 
 ```python
 #!/usr/bin/env python3
 """Script description."""
 
-# Auto-switch to ../.venv (project root is one level above src/)
+# Auto-switch to .venv (same directory as the script)
 import os
 import sys
 from pathlib import Path
 
-_venv_python = Path(__file__).resolve().parent.parent / ".venv" / "bin" / "python"
+_venv_python = Path(__file__).resolve().parent / ".venv" / "bin" / "python"
 
 if _venv_python.exists() and Path(sys.executable).resolve() != _venv_python.resolve():
     os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
@@ -304,7 +297,7 @@ import requests  # safe: .venv deps are available
 
 **How it works**:
 1. System Python runs the script first
-2. `Path(__file__).resolve().parent.parent` resolves to the project root (one level above `src/`)
+2. `Path(__file__).resolve().parent` resolves to the project root (where the script lives)
 3. If `.venv/bin/python` exists there and is not the current interpreter, `os.execv` replaces the current process — no subprocess, no overhead
 4. The script re-runs from the top, this time already inside `.venv`, so the check is skipped
 
@@ -318,8 +311,8 @@ import os
 import sys
 from pathlib import Path
 
-# Auto-switch to ../.venv
-_venv_python = Path(__file__).resolve().parent.parent / ".venv" / "bin" / "python"
+# Auto-switch to .venv
+_venv_python = Path(__file__).resolve().parent / ".venv" / "bin" / "python"
 if _venv_python.exists() and Path(sys.executable).resolve() != _venv_python.resolve():
     os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
 
@@ -342,13 +335,13 @@ if __name__ == "__main__":
 ### Make Executable
 
 ```bash
-chmod +x src/main.py
-./src/main.py --help
+chmod +x fetcher.py
+./fetcher.py --help
 ```
 
 ### Multiple Scripts
 
-Each script in `src/` is self-contained. Copy the relauncher block at the top of every script that needs `.venv` deps:
+Each script at the project root is self-contained. Copy the relauncher block at the top of every script that needs `.venv` deps:
 
 ```python
 #!/usr/bin/env python3
@@ -358,19 +351,19 @@ import os
 import sys
 from pathlib import Path
 
-_venv_python = Path(__file__).resolve().parent.parent / ".venv" / "bin" / "python"
+_venv_python = Path(__file__).resolve().parent / ".venv" / "bin" / "python"
 if _venv_python.exists() and Path(sys.executable).resolve() != _venv_python.resolve():
     os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
 
 # script-specific code below
-from processor import process  # relative import from src/
+from processor import process  # relative import from project root
 ```
 
 ### Why Not Other Approaches
 
 | Approach | Problem |
 |----------|---------|
-| `#!../.venv/bin/python` | Relative shebags not supported on Linux |
+| `#!.venv/bin/python` | Relative shebags not supported on Linux |
 | `#!/usr/bin/env python3` alone | Uses system Python, deps not available |
 | Activate venv manually | Requires user to remember every time |
 | Bash wrapper script | Extra file, more complexity |
@@ -378,14 +371,14 @@ from processor import process  # relative import from src/
 
 ---
 
-## src/ Layout
+## Project Layout
 
-### Files Directly in src/
+### Files at Project Root
 
-The main files of the project live directly in `src/`. The entry point is named after what it does — use a domain-specific name, not necessarily `main.py`:
+The main files of the project live directly at the project root. The entry point is named after what it does — use a domain-specific name, not necessarily `main.py`:
 
 ```
-src/
+project-name/
 ├── fetcher.py     ← Entry point: has shebag + arg parsing (thin). Name matches the domain.
 ├── processor.py   ← Core business logic
 └── errors.py      ← Custom exception types
@@ -398,7 +391,7 @@ Use `main.py` only if no better name exists. Examples of good names: `fetcher.py
 Only add a sub-folder when it groups **multiple files** forming a cohesive module:
 
 ```
-src/
+project-name/
 ├── main.py
 ├── processor.py
 ├── errors.py
@@ -422,7 +415,7 @@ import os
 import sys
 from pathlib import Path
 
-_venv_python = Path(__file__).resolve().parent.parent / ".venv" / "bin" / "python"
+_venv_python = Path(__file__).resolve().parent / ".venv" / "bin" / "python"
 if _venv_python.exists() and Path(sys.executable).resolve() != _venv_python.resolve():
     os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
 
@@ -457,7 +450,7 @@ if __name__ == "__main__":
 ### `processor.py` — Business Logic
 
 ```python
-# src/processor.py
+# processor.py
 """Core processing logic."""
 
 from pathlib import Path
@@ -496,7 +489,7 @@ def process(input_path: str) -> str:
 ### `errors.py` — Custom Exceptions
 
 ```python
-# src/errors.py
+# errors.py
 """Custom exception types for project-name."""
 
 
@@ -523,14 +516,14 @@ class ProcessingError(ProjectError):
 
 ### Structure
 
-Tests live in `tests/`, mirroring the `src/` structure:
+Tests live in `tests/`, with one test file per source file:
 
 ```
 tests/
 ├── conftest.py               ← Shared fixtures
 ├── test_main.py
 ├── test_processor.py
-└── models/                   ← Mirror sub-packages if they exist in src/
+└── models/                   ← Mirror sub-packages if they exist
     └── test_item.py
 ```
 
@@ -554,13 +547,11 @@ def sample_input(tmp_path: Path) -> Path:
 
 ### Table-Style Tests with pytest
 
+With `pythonpath = ["."]` in `pyproject.toml`, imports work directly — no `sys.path` hack needed:
+
 ```python
 # tests/test_processor.py
 """Tests for processor."""
-
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 import pytest
 from pathlib import Path
@@ -584,14 +575,6 @@ class TestProcess:
         assert exc_info.value.field == expected_field
 ```
 
-Or configure `pythonpath` in `pyproject.toml` to avoid the `sys.path` hack:
-```toml
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["src"]
-addopts = "-v --tb=short"
-```
-
 ### Running Tests
 
 ```bash
@@ -599,7 +582,7 @@ addopts = "-v --tb=short"
 make test
 
 # With coverage
-.venv/bin/pytest --cov=src --cov-report=term-missing
+.venv/bin/pytest --cov=. --cov-report=term-missing
 
 # Specific file
 .venv/bin/pytest tests/test_processor.py -v
@@ -672,7 +655,6 @@ def load_config(path):
 dist/
 build/
 *.egg-info/
-src/*.egg-info/
 
 # Python cache
 __pycache__/
@@ -711,31 +693,31 @@ git add .venv/
 # ✅ GOOD: .venv in .gitignore, reproducible via run/setup.sh
 ```
 
-### ❌ Anti-Pattern 2: Sub-Pacote com Nome do Projeto em src/
+### ❌ Anti-Pattern 2: Wrapping Source Files in a Package
 
-This is the **most common mistake** when reorganizing a project or following setuptools docs.
+This is the **most common mistake** when following setuptools docs or other project templates.
 
 ```
-# ❌ BAD: named sub-package — common error when adapting from setuptools examples
-src/
-└── ogaden/
+# ❌ BAD: named sub-package wrapping all source files
+project-name/
+└── project_name/
     ├── __init__.py
     └── cli.py
 
-# ❌ BAD: any unnecessary wrapper package, regardless of name
+# ❌ BAD: src/ directory wrapping source files (overkill for scripts)
 src/
-└── project_name/
-    ├── __init__.py
-    └── main.py
+├── fetcher.py
+├── processor.py
+└── errors.py
 
-# ✅ GOOD: files go directly in src/, no wrapper package
-src/
+# ✅ GOOD: files live directly at the project root
+project-name/
 ├── fetcher.py
 ├── processor.py
 └── errors.py
 ```
 
-The rule: **never create `src/<project-name>/`**. Files live directly in `src/`, not wrapped in a named package.
+The rule: source files live directly at the project root. No `src/` wrapper, no `project_name/` wrapper.
 
 ### ❌ Anti-Pattern 3: Logic in main.py
 
@@ -784,14 +766,14 @@ except ProcessingError as e:
 
 ```python
 # ❌ BAD
-src/utils.py
-src/helpers.py
-src/common.py
+utils.py
+helpers.py
+common.py
 
 # ✅ GOOD: domain-specific names
-src/processor.py
-src/validator.py
-src/reader.py
+processor.py
+validator.py
+reader.py
 ```
 
 ### ❌ Anti-Pattern 7: Relative shebag
@@ -799,9 +781,9 @@ src/reader.py
 ```python
 # ❌ BAD: not supported by Linux kernel
 #!/.venv/bin/python
-#!../.venv/bin/python
+#!.venv/bin/python
 
-# ✅ GOOD: self-relaunching pattern with ../.venv
+# ✅ GOOD: self-relaunching pattern with .venv
 #!/usr/bin/env python3
 # + the os.execv relauncher block
 ```
@@ -812,7 +794,7 @@ src/reader.py
 
 ### 1. Virtual Environment
 - Always `.venv` at project root
-- Scripts in `src/` use `parent.parent / ".venv"` to find it
+- Scripts at root use `parent / ".venv"` to find it
 - Reproducible via `run/setup.sh`
 
 ### 2. Dependencies
@@ -821,12 +803,12 @@ src/reader.py
 - Always pin minimum versions (`>=`)
 
 ### 3. File Organization
-- Main files directly in `src/` — **never create `src/project_name/`**, this is the most common mistake when following setuptools docs
-- Sub-packages only when multiple files form a true module (e.g. `src/models/`)
-- Tests in `tests/`, mirroring `src/` structure
+- Source files directly at the project root — **never create a wrapper directory** (`src/` or `project_name/`), this is the most common mistake
+- Sub-packages only when multiple files form a true module (e.g. `models/`)
+- Tests in `tests/`, mirroring project root structure
 
 ### 4. Testing
-- Use `pythonpath = ["src"]` in `pyproject.toml` to avoid `sys.path` manipulation
+- Use `pythonpath = ["."]` in `pyproject.toml` — no `sys.path` manipulation needed
 - Use `conftest.py` for shared fixtures
 - Parametrize to avoid test duplication
 - Aim for 80%+ coverage
@@ -842,11 +824,11 @@ src/reader.py
 
 | Need | Location | Notes |
 |------|----------|-------|
-| Add new entry point | `src/domain-name.py` | Thin: parse args, call modules. Name after what it does. |
-| Add business logic | `src/processor.py` or domain-named file | Keep thin layers |
-| Add custom exception | `src/errors.py` | Extend `ProjectError` |
-| Add multiple related types | `src/models/` | Only if multiple files are needed |
-| Add test | `tests/` mirroring `src/` | One test file per source file |
+| Add new entry point | `domain-name.py` at project root | Thin: parse args, call modules. Name after what it does. |
+| Add business logic | `processor.py` or domain-named file at root | Keep thin layers |
+| Add custom exception | `errors.py` at root | Extend `ProjectError` |
+| Add multiple related types | `models/` at root | Only if multiple files are needed |
+| Add test | `tests/` mirroring project root | One test file per source file |
 | Add test fixture | `tests/conftest.py` | Shared across test files |
 | Add runtime dependency | `pyproject.toml [project.dependencies]` | Then `make setup` |
 | Add dev dependency | `pyproject.toml [project.optional-dependencies] dev` | Then `make setup` |
@@ -866,7 +848,7 @@ make typecheck    # Type check
 make test         # Run tests
 
 # Run a script directly (use the actual entry point name)
-./src/fetcher.py --help
+./fetcher.py --help
 
 # Before committing
 make lint
@@ -881,6 +863,7 @@ project-name --help
 
 ## Related Skills
 
+- **python-reorganize-refactor** — Manual skill for refactoring existing code to fit this structure. Invoke with `/python-reorganize-refactor`.
 - **go-project-structure** — Same philosophy, adapted for Go
 - **git-workflow-go** — Commit conventions apply equally to Python projects
 - **readme-bilingual-sync** — Keep README.md and README-PT.md synchronized
