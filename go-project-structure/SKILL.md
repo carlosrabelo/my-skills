@@ -1284,6 +1284,5 @@ coverage.html
 
 ## Related Skills
 
-- **go-project-reorganizer** — For restructuring code within this pattern (invoke manually with `/go-project-reorganizer`)
+- **go-project-migrate** — For restructuring code within this pattern (invoke manually with `/go-project-migrate`)
 - **go-commenting-en** — For consistent English comments throughout
-- **git-workflow-go** — For atomic commits and clean history in Go projects

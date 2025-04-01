@@ -863,7 +863,6 @@ project-name --help
 
 ## Related Skills
 
-- **python-reorganize-refactor** — Manual skill for refactoring existing code to fit this structure. Invoke with `/python-reorganize-refactor`.
+- **python-project-migrate** — Manual skill for reorganizing existing code to fit this structure. Invoke with `/python-project-migrate`.
 - **go-project-structure** — Same philosophy, adapted for Go
-- **git-workflow-go** — Commit conventions apply equally to Python projects
 - **readme-bilingual-sync** — Keep README.md and README-PT.md synchronized

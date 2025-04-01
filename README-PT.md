@@ -27,7 +27,6 @@ As skills cobrem estrutura de projetos Go e Python, workflows Git, documentaçã
 | Skill | Modo | Descrição |
 |-------|------|-----------|
 | `git-commit-suggest` | manual | Analisa as mudanças no repositório e sugere comandos `git add` + `git commit` no formato Conventional Commits |
-| `git-workflow-go` | manual | Guia para organizar commits atômicos, histórico limpo e workflows em equipe em projetos Go |
 | `github-repo-editor` | manual | Gera comandos `gh repo edit` com descrição e tópicos derivados automaticamente para um repositório |
 
 ### Go
@@ -35,7 +34,7 @@ As skills cobrem estrutura de projetos Go e Python, workflows Git, documentaçã
 | Skill | Modo | Descrição |
 |-------|------|-----------|
 | `go-project-structure` | agent | Layout padrão de projetos Go: `src/` com `go.mod`, hierarquia dupla de Makefile, `cmd/`, `internal/`, scripts `run/` |
-| `go-reorganize-refactor` | agent | Padrões passo a passo para refatorar código Go existente na estrutura padrão de projetos |
+| `go-project-migrate` | manual | Migra um projeto Go existente para a estrutura flat root padrão (go.mod na raiz, cmd/, internal/, Makefile único) |
 | `go-commenting-en` | agent | Guia para escrever comentários claros e idiomáticos em inglês e documentação godoc em código Go |
 
 ### Python
@@ -43,6 +42,7 @@ As skills cobrem estrutura de projetos Go e Python, workflows Git, documentaçã
 | Skill | Modo | Descrição |
 |-------|------|-----------|
 | `python-project-structure` | agent | Layout padrão de projetos Python: layout `src/`, `pyproject.toml`, `.venv`, hierarquia de Makefile, scripts `run/` |
+| `python-project-migrate` | manual | Migra um projeto Python existente para o layout flat root padrão (arquivos-fonte na raiz, sub-pacotes somente quando justificado, tests/) |
 
 ### Documentação
 
@@ -120,15 +120,15 @@ my-skills/
 │           └── SKILL.md
 ├── git-commit-suggest/
 │   └── SKILL.md
-├── git-workflow-go/
-│   └── SKILL.md
 ├── github-repo-editor/
 │   └── SKILL.md
 ├── go-commenting-en/
 │   └── SKILL.md
+├── go-project-migrate/
+│   └── SKILL.md
 ├── go-project-structure/
 │   └── SKILL.md
-├── go-reorganize-refactor/
+├── python-project-migrate/
 │   └── SKILL.md
 ├── python-project-structure/
 │   └── SKILL.md

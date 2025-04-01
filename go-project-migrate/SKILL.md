@@ -1,14 +1,14 @@
 ---
-name: go-project-reorganizer
+name: go-project-migrate
 description: Reorganize existing Go projects to match the standard flat root structure (go.mod at root, cmd/, internal/, single Makefile, run/ scripts). Handles migration from src/ layout, monolithic code, and missing structure.
 mode: manual
 category: go
 shared: true
 ---
 
-# Go Project Reorganizer
+# Go Project Migrate
 
-Reorganize existing Go projects to match the standard structure defined in `go-project-structure`. Invoke manually with `/go-project-reorganizer` when a project needs structural alignment.
+Reorganize existing Go projects to match the standard structure defined in `go-project-structure`. Invoke manually with `/go-project-migrate` when a project needs structural alignment.
 
 ## Overview
 
@@ -417,4 +417,3 @@ rm -rf internal/utils/
 
 - **go-project-structure** — The target structure this skill reorganizes toward
 - **go-commenting-en** — Update comments after moving code
-- **git-workflow-go** — Keep reorganization commits separate and atomic

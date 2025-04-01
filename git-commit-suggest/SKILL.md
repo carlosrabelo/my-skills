@@ -117,7 +117,6 @@ Can return as:
 ## Integration Points
 
 ### Works With
-- `git-workflow-go` — For commit organization and clean history guidelines
 - `go-reorganize-refactor` — For validating refactored code before committing
 - `go-commenting-en` — For validating English comments before committing
 
@@ -141,7 +140,7 @@ git status
 
 **Issue**: Files shouldn't be committed
 ```
-Solution: Review .gitignore, use git-workflow-go for guidance
+Solution: Review .gitignore and fix before committing
 ```
 
 **Issue**: Commit message doesn't follow convention
@@ -184,7 +183,6 @@ Result: refactor(engine): reorganize processor logic
 
 ## Related Shared Agents/Skills
 
-- **git-workflow-go** — Commit organization and clean history for Go projects
 - **go-reorganize-refactor** — For cleaning up code before committing
 - **go-commenting-en** — For reviewing comments before committing
 

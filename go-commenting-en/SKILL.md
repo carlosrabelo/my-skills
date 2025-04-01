@@ -818,7 +818,6 @@ Before committing:
 
 - **go-project-structure** — Context for where different comment types appear (cmd/, internal/)
 - **go-reorganize-refactor** — Update comments when moving code between packages
-- **git-workflow-go** — Commit messages complement code comments; both should be clear
 
 ---
 
