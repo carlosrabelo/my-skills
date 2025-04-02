@@ -33,8 +33,9 @@ mkdir -p "$DEST_CLAUDE" "$DEST_OPENCODE"
 for skill in "$PROJECT_ROOT"/*/; do
   name=$(basename "$skill")
   if [ "$name" != "sync-skills" ] && [ -f "$skill/SKILL.md" ]; then
+    rm -rf "$DEST_CLAUDE/$name"
     cp -r "$skill" "$DEST_CLAUDE/$name"
-    rm -f "$DEST_OPENCODE/$name"
+    rm -rf "$DEST_OPENCODE/$name"
     cp -r "$skill" "$DEST_OPENCODE/$name"
     echo "✓ $name"
   fi
@@ -48,4 +49,4 @@ Or let the agent determine the project root from the working directory and execu
 - Safe to run multiple times — overwrites with the latest version each time.
 - Does **not** delete skills in either destination that no longer exist in the source (non-destructive).
 - Does **not** copy `sync-skills` itself — it only makes sense inside a project.
-- Removes symlinks in the opencode destination before copying (migrates from the old symlink approach).
+- Removes existing skill directories in the opencode destination before copying (handles both symlinks and directories).

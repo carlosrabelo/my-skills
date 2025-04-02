@@ -413,6 +413,20 @@ rm -rf internal/utils/
 
 ---
 
+## Monorepo Usage
+
+This skill applies to whichever directory contains `go.mod` — that directory **is** the Go project root, regardless of where the git root is.
+
+When migrating a Go component inside a monorepo:
+
+- Treat `<component>/` as the project root throughout all scenarios. `go.mod`, `Makefile`, `run/`, `cmd/`, and `internal/` all live there.
+- `<component>/Makefile` handles Go-specific targets. The git root may have a separate orchestrator Makefile that delegates to `<component>/run/` — this is **not** a violation of the single-Makefile rule. The root Makefile is a multi-language orchestrator, not a second Go Makefile.
+- `run/` scripts compute `ROOT_DIR` as `$(dirname "$0")/..`, which resolves to `<component>/`. Scripts do **not** need to know about the git root unless they output to a shared `bin/` — in that case, go one level further up.
+- `git describe --tags` and other git commands work unchanged from any subdirectory because git walks up to the repository root automatically.
+- When updating `.gitignore`, paths are relative to the component dir (e.g. `bin/`), not the git root.
+
+---
+
 ## Related Skills
 
 - **go-project-structure** — The target structure this skill reorganizes toward

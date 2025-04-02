@@ -1282,6 +1282,66 @@ coverage.html
 
 ---
 
+## Monorepo Usage
+
+This skill applies to whichever directory contains `go.mod` — that directory **is** the Go project root, regardless of where the git root is.
+
+```
+monorepo/
+├── Makefile              ← Orchestrator: delegates to component run/ scripts
+│
+├── go-component/         ← Go project root (contains go.mod)
+│   ├── Makefile          ← Go-specific targets: build, test, lint, fmt
+│   ├── go.mod
+│   ├── go.sum
+│   ├── bin/
+│   ├── run/
+│   │   ├── build.sh
+│   │   └── test.sh
+│   ├── cmd/
+│   └── internal/
+│
+└── other-component/      ← Another language, different root
+    └── ...
+```
+
+**Key points**:
+
+- `go.mod` lives at `<component>/`, not at the git root.
+- `<component>/Makefile` handles Go-specific targets (`build`, `test`, `lint`, `fmt`).
+- `<component>/run/` contains Go-specific scripts.
+- The git root has a separate orchestrator Makefile that delegates to `<component>/run/`. This is **not** a violation of Anti-Pattern 8 (Two Makefiles) — the root Makefile is a multi-language orchestrator, not a second Go Makefile.
+- `run/` scripts compute `ROOT_DIR` as the component dir (`$(dirname "$0")/..`), not the git root. If a script needs the git root (e.g. for a shared `bin/` output path), it goes one level further: `"$(cd "$(dirname "$0")/../.." && pwd)"`.
+- `git describe --tags` works from any subdirectory because git walks up to find the repository root.
+
+**Example root orchestrator Makefile**:
+```makefile
+MAKEFLAGS += --no-print-directory
+
+.PHONY: build test
+
+build:
+	go-component/run/build.sh
+
+test:
+	go-component/run/test.sh
+```
+
+**Example `go-component/run/build.sh`** (ROOT_DIR resolves to the component, not the git root):
+```bash
+#!/bin/bash
+set -euo pipefail
+
+BINARY_NAME="project-name"
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"   # resolves to go-component/
+
+mkdir -p "$ROOT_DIR/bin"
+cd "$ROOT_DIR"
+go build -o "$ROOT_DIR/bin/$BINARY_NAME" "./cmd/$BINARY_NAME"
+```
+
+---
+
 ## Related Skills
 
 - **go-project-migrate** — For restructuring code within this pattern (invoke manually with `/go-project-migrate`)

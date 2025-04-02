@@ -420,6 +420,80 @@ def fixtures_dir() -> Path:
 
 ---
 
+### Scenario 9: Migrate requirements.txt to pyproject.toml
+
+**Symptom**: Project uses `requirements.txt` for dependencies instead of `pyproject.toml`.
+
+**Steps**:
+
+1. **Create `pyproject.toml`** at the project root with dependencies from `requirements.txt`:
+```toml
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "project-name"
+version = "0.1.0"
+description = "Short description"
+requires-python = ">=3.12"
+dependencies = [
+    # Copy runtime deps from requirements.txt
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.4",
+    "mypy>=1.10",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+src = ["."]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+```
+
+2. **Update `run/setup.sh`** to install from `pyproject.toml` instead of `requirements.txt`:
+```bash
+# Old:
+"$ROOT_DIR/.venv/bin/pip" install -r "$ROOT_DIR/requirements.txt"
+
+# New:
+"$ROOT_DIR/.venv/bin/pip" install -e "$ROOT_DIR[dev]" --quiet
+```
+
+3. **Keep `requirements.txt` as a lockfile** (or remove it):
+```bash
+# Option A: keep as lockfile (pinned versions for reproducible installs)
+pip freeze > requirements.txt
+
+# Option B: remove it (pyproject.toml is now the source of truth)
+rm requirements.txt
+```
+
+4. **Verify**:
+```bash
+rm -rf .venv
+make setup    # rebuilds .venv from pyproject.toml
+make test
+```
+
+---
+
 ## Reorganization Checklist
 
 ### Before
@@ -453,6 +527,20 @@ def fixtures_dir() -> Path:
 - **No sub-packages for single files** — flatten to a root-level module instead
 - **main.py must be thin** — ≤50 lines, CLI parsing + delegation only
 - **No `src/` directory** — source files belong at project root
+
+---
+
+## Monorepo Usage
+
+This skill applies to whichever directory contains `pyproject.toml` — that directory **is** the Python project root.
+
+When migrating a Python component inside a monorepo:
+
+- Treat `<component>/` as the project root throughout all scenarios. `pyproject.toml`, `.venv`, `Makefile`, `run/`, and all source files live there.
+- `<component>/Makefile` handles Python-specific targets. The git root may have a separate orchestrator Makefile that delegates to `<component>/run/` — this does not conflict with the single-Makefile rule for the Python project.
+- Sub-packages inside `<component>/` (e.g. `<component>/tatuscan/`) are legitimate domain packages. They are **not** Anti-Pattern 2. The anti-pattern is a directory that exists only to wrap source files with no domain meaning (like `src/` or `project_name/`). A directory named after a real domain concept is correct.
+- The self-relaunching shebag works unchanged: `Path(__file__).resolve().parent` resolves to `<component>/`, where `.venv` is a sibling — no path adjustments needed.
+- `run/setup.sh` computes `ROOT_DIR` as `$(dirname "$0")/..`, which resolves to `<component>/`. The `.venv` is created there, isolated from the git root.
 
 ---
 

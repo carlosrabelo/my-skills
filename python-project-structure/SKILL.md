@@ -861,6 +861,54 @@ project-name --help
 
 ---
 
+## Monorepo Usage
+
+This skill applies to whichever directory contains `pyproject.toml` — that directory **is** the Python project root.
+
+```
+monorepo/
+├── Makefile              ← Orchestrator: delegates to component run/ scripts
+│
+├── python-component/     ← Python project root (contains pyproject.toml)
+│   ├── Makefile          ← Python-specific targets: setup, test, lint, fmt
+│   ├── pyproject.toml
+│   ├── .venv/
+│   ├── run/
+│   │   ├── setup.sh
+│   │   └── test.sh
+│   ├── fetcher.py
+│   ├── processor.py
+│   └── tatuscan/         ← Legitimate domain sub-package (NOT the src/ anti-pattern)
+│       ├── __init__.py
+│       └── scanner.py
+│
+└── go-component/         ← Another language, different root
+    └── ...
+```
+
+**Key points**:
+
+- `pyproject.toml` and `.venv` live inside `<component>/`, not at the git root.
+- `<component>/Makefile` handles Python-specific targets (`setup`, `test`, `lint`, `fmt`).
+- `<component>/run/` contains Python-specific scripts.
+- Sub-packages inside `<component>/` (e.g. `<component>/tatuscan/`) are legitimate domain packages. They are **not** Anti-Pattern 2 (wrapping source in a `src/` directory). The anti-pattern is a directory that exists only to hold source files with no domain meaning. A package named after a real domain concept is correct structure.
+- The self-relaunching shebag works unchanged in a monorepo: `Path(__file__).resolve().parent` resolves to `<component>/`, where `.venv` is a sibling — no changes needed.
+
+**Example root orchestrator Makefile**:
+```makefile
+MAKEFLAGS += --no-print-directory
+
+.PHONY: setup test
+
+setup:
+	python-component/run/setup.sh
+
+test:
+	python-component/run/test.sh
+```
+
+---
+
 ## Related Skills
 
 - **python-project-migrate** — Manual skill for reorganizing existing code to fit this structure. Invoke with `/python-project-migrate`.
