@@ -233,7 +233,7 @@ gh repo view --web  # Opens on GitHub
 
 - **readme-bilingual-sync** — For creating comprehensive project documentation
 - **git-commit-suggest** — For committing changes after updating repository metadata
-- **go-project-structure** — For documenting project structure
+- **go-project-create** — For documenting project structure
 
 ## Changelog
 

@@ -1,5 +1,5 @@
 ---
-name: python-project-structure
+name: python-project-create
 description: Guide to organizing Python projects with pyproject.toml, .venv, flat root layout (no src/), Makefile hierarchy, and run/ scripts. Source files live at project root, sub-packages only when truly needed. Covers shebag using .venv, testing patterns, error handling.
 mode: agent
 category: python
@@ -863,54 +863,33 @@ project-name --help
 
 ## Monorepo Usage
 
-This skill applies to whichever directory contains `pyproject.toml` — that directory **is** the Python project root.
+This skill applies to whichever directory contains `pyproject.toml` — that is the Python project root.
 
-```
-monorepo/
-├── Makefile              ← Orchestrator: delegates to component run/ scripts
-│
-├── python-component/     ← Python project root (contains pyproject.toml)
-│   ├── Makefile          ← Python-specific targets: setup, test, lint, fmt
-│   ├── pyproject.toml
-│   ├── .venv/
-│   ├── run/
-│   │   ├── setup.sh
-│   │   └── test.sh
-│   ├── fetcher.py
-│   ├── processor.py
-│   └── tatuscan/         ← Legitimate domain sub-package (NOT the src/ anti-pattern)
-│       ├── __init__.py
-│       └── scanner.py
-│
-└── go-component/         ← Another language, different root
-    └── ...
-```
+- `pyproject.toml` and `.venv` live inside `<component>/`, not at the git root
+- The self-relaunching shebag works unchanged: `Path(__file__).resolve().parent` resolves to `<component>/`
+- Sub-packages inside `<component>/` are legitimate domain packages, not the `src/` anti-pattern
 
-**Key points**:
+See **monorepo-project-create** for the full monorepo layout, root Makefile patterns, and component naming conventions.
 
-- `pyproject.toml` and `.venv` live inside `<component>/`, not at the git root.
-- `<component>/Makefile` handles Python-specific targets (`setup`, `test`, `lint`, `fmt`).
-- `<component>/run/` contains Python-specific scripts.
-- Sub-packages inside `<component>/` (e.g. `<component>/tatuscan/`) are legitimate domain packages. They are **not** Anti-Pattern 2 (wrapping source in a `src/` directory). The anti-pattern is a directory that exists only to hold source files with no domain meaning. A package named after a real domain concept is correct structure.
-- The self-relaunching shebag works unchanged in a monorepo: `Path(__file__).resolve().parent` resolves to `<component>/`, where `.venv` is a sibling — no changes needed.
+---
 
-**Example root orchestrator Makefile**:
-```makefile
-MAKEFLAGS += --no-print-directory
+## Encadeamento
 
-.PHONY: setup test
+Ao criar um projeto Python completo do zero, o fluxo completo envolve estas skills na ordem:
 
-setup:
-	python-component/run/setup.sh
+1. **`makefile-create`** — criar o Makefile com os targets padrão
+2. **`readme-create`** — criar `README.md` com a estrutura padrão
+3. **`readme-bilingual-sync`** — criar `README-PT.md` como tradução de `README.md`
 
-test:
-	python-component/run/test.sh
-```
+Estas skills são automáticas (modo `agent`) e são acionadas naturalmente ao criar os respectivos arquivos. A ordem acima é a sequência correta.
 
 ---
 
 ## Related Skills
 
 - **python-project-migrate** — Manual skill for reorganizing existing code to fit this structure. Invoke with `/python-project-migrate`.
-- **go-project-structure** — Same philosophy, adapted for Go
+- **go-project-create** — Same philosophy, adapted for Go
+- **makefile-create** — Standard Makefile structure and targets used in every Python project
+- **readme-create** — Standard README content and section order (complements readme-bilingual-sync)
 - **readme-bilingual-sync** — Keep README.md and README-PT.md synchronized
+- **monorepo-project-create** — For organizing multi-language monorepos with Python as one component

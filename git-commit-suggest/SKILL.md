@@ -118,7 +118,6 @@ Can return as:
 
 ### Works With
 - `go-reorganize-refactor` — For validating refactored code before committing
-- `go-commenting-en` — For validating English comments before committing
 
 ## Post-Commit Recommendations
 
@@ -184,7 +183,6 @@ Result: refactor(engine): reorganize processor logic
 ## Related Shared Agents/Skills
 
 - **go-reorganize-refactor** — For cleaning up code before committing
-- **go-commenting-en** — For reviewing comments before committing
 
 ## Changelog
 

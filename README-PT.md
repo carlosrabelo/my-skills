@@ -33,22 +33,37 @@ As skills cobrem estrutura de projetos Go e Python, workflows Git, documentaçã
 
 | Skill | Modo | Descrição |
 |-------|------|-----------|
-| `go-project-structure` | agent | Layout padrão de projetos Go: `src/` com `go.mod`, hierarquia dupla de Makefile, `cmd/`, `internal/`, scripts `run/` |
+| `go-project-create` | agent | Layout padrão de projetos Go: flat root com `go.mod`, Makefile único, `cmd/`, `internal/`, scripts `run/` |
 | `go-project-migrate` | manual | Migra um projeto Go existente para a estrutura flat root padrão (go.mod na raiz, cmd/, internal/, Makefile único) |
-| `go-commenting-en` | agent | Guia para escrever comentários claros e idiomáticos em inglês e documentação godoc em código Go |
 
 ### Python
 
 | Skill | Modo | Descrição |
 |-------|------|-----------|
-| `python-project-structure` | agent | Layout padrão de projetos Python: layout `src/`, `pyproject.toml`, `.venv`, hierarquia de Makefile, scripts `run/` |
+| `python-project-create` | agent | Layout padrão de projetos Python: flat root, `pyproject.toml`, `.venv`, Makefile único, scripts `run/` |
 | `python-project-migrate` | manual | Migra um projeto Python existente para o layout flat root padrão (arquivos-fonte na raiz, sub-pacotes somente quando justificado, tests/) |
+
+### Tooling
+
+| Skill | Modo | Descrição |
+|-------|------|-----------|
+| `makefile-create` | agent | Cria um Makefile do zero com estrutura padrão: linhas de abertura, ajuda autodocumentada, targets padrão, padrão delegate-to-run/ |
+| `makefile-migrate` | manual | Migra um Makefile existente para a estrutura padrão |
 
 ### Documentação
 
 | Skill | Modo | Descrição |
 |-------|------|-----------|
+| `readme-create` | agent | Cria README.md do zero com ordem de seções padrão, formato Highlights, requisito bilíngue, bloco Project Layout |
+| `readme-migrate` | manual | Migra um README existente para a estrutura padrão |
 | `readme-bilingual-sync` | agent | Mantém `README.md` (inglês) e `README-PT.md` (português) sincronizados e atualizados |
+
+### Projeto
+
+| Skill | Modo | Descrição |
+|-------|------|-----------|
+| `monorepo-project-create` | agent | Guia para organizar monorepos multi-linguagem com raízes por componente, Makefile orquestrador na raiz e convenções de nomes consistentes |
+| `monorepo-project-migrate` | manual | Reorganiza repositórios existentes no layout padrão de monorepo |
 
 ### Meta
 
@@ -104,7 +119,7 @@ Em qualquer sessão do Claude Code, digite o nome da skill como um comando slash
 
 ### Skills de agente
 
-As skills de agente são ativadas automaticamente quando o Claude detecta contexto relevante — por exemplo, `go-project-structure` é ativada quando você está trabalhando em um projeto Go e pergunta sobre organização.
+As skills de agente são ativadas automaticamente quando o Claude detecta contexto relevante — por exemplo, `go-project-create` é ativada quando você está trabalhando em um projeto Go e pergunta sobre organização.
 
 ### Atualizando skills
 
@@ -122,17 +137,27 @@ my-skills/
 │   └── SKILL.md
 ├── github-repo-editor/
 │   └── SKILL.md
-├── go-commenting-en/
-│   └── SKILL.md
 ├── go-project-migrate/
 │   └── SKILL.md
-├── go-project-structure/
+├── go-project-create/
+│   └── SKILL.md
+├── makefile-create/
+│   └── SKILL.md
+├── makefile-migrate/
+│   └── SKILL.md
+├── monorepo-project-create/
+│   └── SKILL.md
+├── monorepo-project-migrate/
 │   └── SKILL.md
 ├── python-project-migrate/
 │   └── SKILL.md
-├── python-project-structure/
+├── python-project-create/
 │   └── SKILL.md
 ├── readme-bilingual-sync/
+│   └── SKILL.md
+├── readme-create/
+│   └── SKILL.md
+├── readme-migrate/
 │   └── SKILL.md
 ├── README.md
 └── README-PT.md

@@ -33,22 +33,37 @@ Skills cover Go and Python project structure, Git workflows, code documentation,
 
 | Skill | Mode | Description |
 |-------|------|-------------|
-| `go-project-structure` | agent | Standard Go project layout: `src/` with `go.mod`, dual Makefile hierarchy, `cmd/`, `internal/`, `run/` scripts |
+| `go-project-create` | agent | Standard Go project layout: flat root with `go.mod`, single Makefile, `cmd/`, `internal/`, `run/` scripts |
 | `go-project-migrate` | manual | Migrate an existing Go project to the standard flat root structure (go.mod at root, cmd/, internal/, single Makefile) |
-| `go-commenting-en` | agent | Guide for writing clear, idiomatic English comments and godoc documentation in Go code |
 
 ### Python
 
 | Skill | Mode | Description |
 |-------|------|-------------|
-| `python-project-structure` | agent | Standard Python project layout: `src/` layout, `pyproject.toml`, `.venv`, Makefile hierarchy, `run/` scripts |
+| `python-project-create` | agent | Standard Python project layout: flat root, `pyproject.toml`, `.venv`, single Makefile, `run/` scripts |
 | `python-project-migrate` | manual | Migrate an existing Python project to the standard flat root layout (source files at root, sub-packages only when justified, tests/) |
+
+### Tooling
+
+| Skill | Mode | Description |
+|-------|------|-------------|
+| `makefile-create` | agent | Create a Makefile from scratch with standard structure: opening lines, self-documenting help, standard targets, delegate-to-run/ pattern |
+| `makefile-migrate` | manual | Migrate an existing Makefile to the standard structure |
 
 ### Documentation
 
 | Skill | Mode | Description |
 |-------|------|-------------|
+| `readme-create` | agent | Create README.md from scratch with standard section order, Highlights format, bilingual requirement, Project Layout block |
+| `readme-migrate` | manual | Migrate an existing README to the standard structure |
 | `readme-bilingual-sync` | agent | Keep `README.md` (English) and `README-PT.md` (Portuguese) synchronized and up-to-date |
+
+### Project
+
+| Skill | Mode | Description |
+|-------|------|-------------|
+| `monorepo-project-create` | agent | Guide to organizing multi-language monorepos with component-level roots, root orchestrator Makefile, and consistent naming conventions |
+| `monorepo-project-migrate` | manual | Reorganize existing repos into the standard monorepo layout |
 
 ### Meta
 
@@ -104,7 +119,7 @@ In any Claude Code session, type the skill name as a slash command:
 
 ### Agent skills
 
-Agent skills are triggered automatically when Claude detects relevant context — for example, `go-project-structure` activates when you're working on a Go project and ask about organization.
+Agent skills are triggered automatically when Claude detects relevant context — for example, `go-project-create` activates when you're working on a Go project and ask about organization.
 
 ### Updating skills
 
@@ -122,17 +137,27 @@ my-skills/
 │   └── SKILL.md
 ├── github-repo-editor/
 │   └── SKILL.md
-├── go-commenting-en/
-│   └── SKILL.md
 ├── go-project-migrate/
 │   └── SKILL.md
-├── go-project-structure/
+├── go-project-create/
+│   └── SKILL.md
+├── makefile-create/
+│   └── SKILL.md
+├── makefile-migrate/
+│   └── SKILL.md
+├── monorepo-project-create/
+│   └── SKILL.md
+├── monorepo-project-migrate/
 │   └── SKILL.md
 ├── python-project-migrate/
 │   └── SKILL.md
-├── python-project-structure/
+├── python-project-create/
 │   └── SKILL.md
 ├── readme-bilingual-sync/
+│   └── SKILL.md
+├── readme-create/
+│   └── SKILL.md
+├── readme-migrate/
 │   └── SKILL.md
 ├── README.md
 └── README-PT.md

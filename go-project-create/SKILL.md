@@ -1,5 +1,5 @@
 ---
-name: go-project-structure
+name: go-project-create
 description: Guide to organizing Go projects with go.mod at project root, single Makefile, cmd/, internal/, and bin/ directories. Covers anti-patterns, testing patterns, error handling, and works for multiple independent Go projects.
 mode: agent
 category: go
@@ -978,6 +978,40 @@ project/
 
 ---
 
+### ❌ Anti-Pattern 9: Running `go build` Without `-o`
+
+Running `go build` directly without the `-o` flag places the binary in the current working directory, not in `bin/`:
+
+```bash
+# ❌ BAD: binary lands in project root
+go build ./cmd/project-name
+
+# ❌ BAD: also lands in project root
+cd cmd/project-name && go build
+```
+
+**✅ GOOD: Always use `make build` or `./run/build.sh`**
+
+```bash
+# ✅ Uses run/build.sh which specifies -o bin/project-name
+make build
+
+# ✅ Or call the script directly
+./run/build.sh
+```
+
+The `run/build.sh` script always uses `-o "$ROOT_DIR/bin/$BINARY_NAME"`, which guarantees the binary goes to `bin/` regardless of the working directory.
+
+As a safety net, add the binary name to `.gitignore` so a misplaced binary is never accidentally committed:
+
+```gitignore
+# Build artifacts
+bin/
+project-name          ← binary name without path, catches root-level builds
+```
+
+---
+
 ## Key Principles
 
 ### 1. Clear Separation of Concerns
@@ -1264,6 +1298,7 @@ Add to root `.gitignore`:
 ```
 # Build artifacts
 bin/
+project-name          ← replace with the actual binary name; catches go build without -o
 
 # IDE
 .vscode/
@@ -1284,65 +1319,48 @@ coverage.html
 
 ## Monorepo Usage
 
-This skill applies to whichever directory contains `go.mod` — that directory **is** the Go project root, regardless of where the git root is.
+This skill applies to whichever directory contains `go.mod` — that is the Go project root, regardless of where the git root is.
 
-```
-monorepo/
-├── Makefile              ← Orchestrator: delegates to component run/ scripts
-│
-├── go-component/         ← Go project root (contains go.mod)
-│   ├── Makefile          ← Go-specific targets: build, test, lint, fmt
-│   ├── go.mod
-│   ├── go.sum
-│   ├── bin/
-│   ├── run/
-│   │   ├── build.sh
-│   │   └── test.sh
-│   ├── cmd/
-│   └── internal/
-│
-└── other-component/      ← Another language, different root
-    └── ...
-```
+- `go.mod` lives at `<component>/`, not at the git root
+- `<component>/run/` scripts resolve `ROOT_DIR` to the component dir: `$(cd "$(dirname "$0")/.." && pwd)`
+- The git root has a separate orchestrator Makefile — this is **not** Anti-Pattern 8 (Two Makefiles)
 
-**Key points**:
+See **monorepo-project-create** for the full monorepo layout, root Makefile patterns, and component naming conventions.
 
-- `go.mod` lives at `<component>/`, not at the git root.
-- `<component>/Makefile` handles Go-specific targets (`build`, `test`, `lint`, `fmt`).
-- `<component>/run/` contains Go-specific scripts.
-- The git root has a separate orchestrator Makefile that delegates to `<component>/run/`. This is **not** a violation of Anti-Pattern 8 (Two Makefiles) — the root Makefile is a multi-language orchestrator, not a second Go Makefile.
-- `run/` scripts compute `ROOT_DIR` as the component dir (`$(dirname "$0")/..`), not the git root. If a script needs the git root (e.g. for a shared `bin/` output path), it goes one level further: `"$(cd "$(dirname "$0")/../.." && pwd)"`.
-- `git describe --tags` works from any subdirectory because git walks up to find the repository root.
+---
 
-**Example root orchestrator Makefile**:
-```makefile
-MAKEFLAGS += --no-print-directory
+## Code Comments
 
-.PHONY: build test
+**Language**: Always English, even if the rest of the project uses Portuguese.
 
-build:
-	go-component/run/build.sh
+**Godoc** (exported identifiers):
+- First line starts with the identifier name: `// Process reads input from…`
+- Complete sentence, ending with period
+- Unexported functions follow the same format (lowercase name)
 
-test:
-	go-component/run/test.sh
-```
+**Inline comments**:
+- Explain **why**, not what — if the code is obvious, no comment needed
+- Above the line (not end-of-line) for multi-word explanations
 
-**Example `go-component/run/build.sh`** (ROOT_DIR resolves to the component, not the git root):
-```bash
-#!/bin/bash
-set -euo pipefail
+**All exported functions, types, and struct fields must have doc comments.**
 
-BINARY_NAME="project-name"
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"   # resolves to go-component/
+---
 
-mkdir -p "$ROOT_DIR/bin"
-cd "$ROOT_DIR"
-go build -o "$ROOT_DIR/bin/$BINARY_NAME" "./cmd/$BINARY_NAME"
-```
+## Encadeamento
+
+Ao criar um projeto Go completo do zero, o fluxo completo envolve estas skills na ordem:
+
+1. **`makefile-create`** — criar o Makefile com os targets padrão
+2. **`readme-create`** — criar `README.md` com a estrutura padrão
+3. **`readme-bilingual-sync`** — criar `README-PT.md` como tradução de `README.md`
+
+Estas skills são automáticas (modo `agent`) e são acionadas naturalmente ao criar os respectivos arquivos. A ordem acima é a sequência correta.
 
 ---
 
 ## Related Skills
 
 - **go-project-migrate** — For restructuring code within this pattern (invoke manually with `/go-project-migrate`)
-- **go-commenting-en** — For consistent English comments throughout
+- **makefile-create** — Standard Makefile structure and targets used in every Go project
+- **readme-create** — Standard README content, section order, and bilingual conventions
+- **monorepo-project-create** — For organizing multi-language monorepos with Go as one component

@@ -436,19 +436,14 @@ git commit -m "docs: fix Portuguese translation" \
 
 ---
 
-## Related Skills
+## Encadeamento
 
-- **readme-bilingual-sync** — This skill (self-reference for new projects)
-- **go-project-structure** — For documenting project structure
-- **git-commit-suggest** — For committing documentation changes
+Quando invocada como passo final de um fluxo maior (e não como subpasso de `readme-migrate`), invoque a skill `git-commit-suggest` para preparar o commit com as mudanças feitas.
 
 ---
 
-## Changelog
+## Related Skills
 
-- **v1.0** (2025-03-11) — Initial version
-  - Workflow for keeping READMEs synchronized
-  - Best practices for bilingual documentation
-  - Checklist for updates
-  - Translation guidelines
-  - Common section examples
+- **readme-bilingual-sync** — This skill (self-reference for new projects)
+- **go-project-create** — For documenting project structure
+- **git-commit-suggest** — For committing documentation changes

@@ -8,7 +8,7 @@ shared: true
 
 # Python Project Migrate
 
-Reorganize existing Python projects to match the standard structure defined in `python-project-structure`. Invoke manually with `/python-project-migrate` when a project needs structural alignment.
+Reorganize existing Python projects to match the standard structure defined in `python-project-create`. Invoke manually with `/python-project-migrate` when a project needs structural alignment.
 
 ## Overview
 
@@ -532,19 +532,32 @@ make test
 
 ## Monorepo Usage
 
-This skill applies to whichever directory contains `pyproject.toml` — that directory **is** the Python project root.
+This skill applies to whichever directory contains `pyproject.toml` — that is the Python project root.
 
 When migrating a Python component inside a monorepo:
 
 - Treat `<component>/` as the project root throughout all scenarios. `pyproject.toml`, `.venv`, `Makefile`, `run/`, and all source files live there.
-- `<component>/Makefile` handles Python-specific targets. The git root may have a separate orchestrator Makefile that delegates to `<component>/run/` — this does not conflict with the single-Makefile rule for the Python project.
-- Sub-packages inside `<component>/` (e.g. `<component>/tatuscan/`) are legitimate domain packages. They are **not** Anti-Pattern 2. The anti-pattern is a directory that exists only to wrap source files with no domain meaning (like `src/` or `project_name/`). A directory named after a real domain concept is correct.
-- The self-relaunching shebag works unchanged: `Path(__file__).resolve().parent` resolves to `<component>/`, where `.venv` is a sibling — no path adjustments needed.
-- `run/setup.sh` computes `ROOT_DIR` as `$(dirname "$0")/..`, which resolves to `<component>/`. The `.venv` is created there, isolated from the git root.
+- The self-relaunching shebag works unchanged: `Path(__file__).resolve().parent` resolves to `<component>/` — no path adjustments needed.
+- `run/setup.sh` computes `ROOT_DIR` as `$(dirname "$0")/..`, resolving to `<component>/`. `.venv` is created there, isolated from the git root.
+- Sub-packages inside `<component>/` are legitimate domain packages — not Anti-Pattern 2.
+
+See **monorepo-project-create** for the full monorepo layout and root Makefile patterns.
+
+---
+
+## Encadeamento
+
+Após concluir todos os passos acima:
+
+1. **Verifique o Makefile** — se existir mas não seguir o padrão de `makefile-create`, invoque a skill `makefile-migrate`
+2. **Verifique os READMEs** — se `README.md` ou `README-PT.md` precisarem de atualização, invoque a skill `readme-migrate`
+3. **Invoque `git-commit-suggest`** para preparar o commit com as mudanças feitas
 
 ---
 
 ## Related Skills
 
-- **python-project-structure** — The target structure this skill reorganizes toward
+- **python-project-create** — The target structure this skill reorganizes toward
 - **readme-bilingual-sync** — Update docs after significant structural changes
+- **monorepo-project-create** — For organizing the git root when Python is one component among many
+- **monorepo-project-migrate** — For migrating the repo itself into a monorepo layout

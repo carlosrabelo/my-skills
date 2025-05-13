@@ -8,7 +8,7 @@ shared: true
 
 # Go Project Migrate
 
-Reorganize existing Go projects to match the standard structure defined in `go-project-structure`. Invoke manually with `/go-project-migrate` when a project needs structural alignment.
+Reorganize existing Go projects to match the standard structure defined in `go-project-create`. Invoke manually with `/go-project-migrate` when a project needs structural alignment.
 
 ## Overview
 
@@ -192,7 +192,7 @@ func main() {
 }
 ```
 
-5. **Add run/ scripts and Makefile** (see go-project-structure)
+5. **Add run/ scripts and Makefile** (see go-project-create)
 
 6. **Delete old files from root**:
 ```bash
@@ -273,7 +273,7 @@ cd "$ROOT_DIR"
 go test -v ./...
 ```
 
-3. **Create run/install.sh and run/uninstall.sh** (see go-project-structure)
+3. **Create run/install.sh and run/uninstall.sh** (see go-project-create)
 
 4. **Make executable**:
 ```bash
@@ -415,19 +415,31 @@ rm -rf internal/utils/
 
 ## Monorepo Usage
 
-This skill applies to whichever directory contains `go.mod` — that directory **is** the Go project root, regardless of where the git root is.
+This skill applies to whichever directory contains `go.mod` — that is the Go project root, regardless of where the git root is.
 
 When migrating a Go component inside a monorepo:
 
 - Treat `<component>/` as the project root throughout all scenarios. `go.mod`, `Makefile`, `run/`, `cmd/`, and `internal/` all live there.
-- `<component>/Makefile` handles Go-specific targets. The git root may have a separate orchestrator Makefile that delegates to `<component>/run/` — this is **not** a violation of the single-Makefile rule. The root Makefile is a multi-language orchestrator, not a second Go Makefile.
-- `run/` scripts compute `ROOT_DIR` as `$(dirname "$0")/..`, which resolves to `<component>/`. Scripts do **not** need to know about the git root unless they output to a shared `bin/` — in that case, go one level further up.
-- `git describe --tags` and other git commands work unchanged from any subdirectory because git walks up to the repository root automatically.
-- When updating `.gitignore`, paths are relative to the component dir (e.g. `bin/`), not the git root.
+- `run/` scripts compute `ROOT_DIR` as `$(dirname "$0")/..`, resolving to `<component>/` — not the git root.
+- The git root has a separate orchestrator Makefile — this is **not** a violation of the single-Makefile rule.
+- When updating `.gitignore`, paths are relative to `<component>/`, not the git root.
+
+See **monorepo-project-create** for the full monorepo layout and root Makefile patterns.
+
+---
+
+## Encadeamento
+
+Após concluir todos os passos acima:
+
+1. **Verifique o Makefile** — se existir mas não seguir o padrão de `makefile-create`, invoque a skill `makefile-migrate`
+2. **Verifique os READMEs** — se `README.md` ou `README-PT.md` precisarem de atualização, invoque a skill `readme-migrate`
+3. **Invoque `git-commit-suggest`** para preparar o commit com as mudanças feitas
 
 ---
 
 ## Related Skills
 
-- **go-project-structure** — The target structure this skill reorganizes toward
-- **go-commenting-en** — Update comments after moving code
+- **go-project-create** — The target structure this skill reorganizes toward
+- **monorepo-project-create** — For organizing the git root when Go is one component among many
+- **monorepo-project-migrate** — For migrating the repo itself into a monorepo layout
