@@ -33,21 +33,21 @@ As skills cobrem estrutura de projetos Go e Python, workflows Git, documentaçã
 
 | Skill | Modo | Descrição |
 |-------|------|-----------|
-| `go-project-create` | agent | Layout padrão de projetos Go: flat root com `go.mod`, Makefile único, `cmd/`, `internal/`, scripts `run/` |
+| `go-project-create` | agent | Layout padrão de projetos Go: flat root com `go.mod`, Makefile único, `cmd/`, `internal/`, scripts `make/` |
 | `go-project-migrate` | manual | Migra um projeto Go existente para a estrutura flat root padrão (go.mod na raiz, cmd/, internal/, Makefile único) |
 
 ### Python
 
 | Skill | Modo | Descrição |
 |-------|------|-----------|
-| `python-project-create` | agent | Layout padrão de projetos Python: flat root, `pyproject.toml`, `.venv`, Makefile único, scripts `run/` |
+| `python-project-create` | agent | Layout padrão de projetos Python: flat root, `pyproject.toml`, `.venv`, Makefile único, scripts `make/` |
 | `python-project-migrate` | manual | Migra um projeto Python existente para o layout flat root padrão (arquivos-fonte na raiz, sub-pacotes somente quando justificado, tests/) |
 
 ### Tooling
 
 | Skill | Modo | Descrição |
 |-------|------|-----------|
-| `makefile-create` | agent | Cria um Makefile do zero com estrutura padrão: linhas de abertura, ajuda autodocumentada, targets padrão, padrão delegate-to-run/ |
+| `makefile-create` | agent | Cria um Makefile do zero com estrutura padrão: linhas de abertura, ajuda autodocumentada, targets padrão, padrão delegate-to-make/ |
 | `makefile-migrate` | manual | Migra um Makefile existente para a estrutura padrão |
 
 ### Documentação

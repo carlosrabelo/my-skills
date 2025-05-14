@@ -10,7 +10,7 @@ shared: true
 
 ## Overview
 
-The git root is an **orchestrator only**. No language "lives" at the git root. Each component is self-contained with its own root (`go.mod` or `pyproject.toml`), its own Makefile, and its own `run/` scripts.
+The git root is an **orchestrator only**. No language "lives" at the git root. Each component is self-contained with its own root (`go.mod` or `pyproject.toml`), its own Makefile, and its own `make/` scripts.
 
 ---
 
@@ -18,17 +18,17 @@ The git root is an **orchestrator only**. No language "lives" at the git root. E
 
 ```
 monorepo/
-├── Makefile              ← Orchestrator only — delegates to component run/ scripts
+├── Makefile              ← Orchestrator only — delegates to component make/ scripts
 ├── go-component/         ← Go root (contains go.mod)
 │   ├── Makefile
 │   ├── go.mod
 │   ├── bin/
-│   └── run/
+│   └── make/
 ├── python-component/     ← Python root (contains pyproject.toml)
 │   ├── Makefile
 │   ├── pyproject.toml
 │   ├── .venv/
-│   └── run/
+│   └── make/
 └── shared/               ← Optional: CI configs, shared scripts, docs
 ```
 
@@ -48,12 +48,12 @@ MAKEFLAGS += --no-print-directory
 .PHONY: build test lint
 
 build:
-	go-component/run/build.sh
-	python-component/run/setup.sh
+	go-component/make/build.sh
+	python-component/make/setup.sh
 
 test:
-	go-component/run/test.sh
-	python-component/run/test.sh
+	go-component/make/test.sh
+	python-component/make/test.sh
 ```
 
 Having two Makefiles (root + component) is **not** Anti-Pattern (Two Makefiles) in a multi-language monorepo — they serve different purposes. The anti-pattern is two Makefiles for the same language/component.
@@ -79,7 +79,7 @@ Use language suffixes (`-go`, `-py`) only when two components share the same dom
 
 Each component:
 - Has its own `Makefile` with language-specific targets
-- Has its own `run/` with scripts
+- Has its own `make/` with scripts
 - Resolves `ROOT_DIR` relative to itself, not the git root:
   ```bash
   ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"   # resolves to <component>/
@@ -93,7 +93,7 @@ Each component:
 
 ## Per-Language Components
 
-- **Go components**: see `go-project-create` — `go.mod` lives at `<component>/`, `bin/` and `run/` are siblings
+- **Go components**: see `go-project-create` — `go.mod` lives at `<component>/`, `bin/` and `make/` are siblings
 - **Python components**: see `python-project-create` — `pyproject.toml` and `.venv` live at `<component>/`, self-relaunching shebag works unchanged
 
 ---

@@ -1,6 +1,6 @@
 ---
 name: makefile-create
-description: Reference for creating a Makefile from scratch for Go and Python projects. Covers mandatory opening lines, self-documenting help via grep/awk, variables, standard targets, delegate-to-run/ pattern, and monorepo orchestration.
+description: Reference for creating a Makefile from scratch for Go and Python projects. Covers mandatory opening lines, self-documenting help via grep/awk, variables, standard targets, delegate-to-make/ pattern, and monorepo orchestration.
 mode: agent
 category: tooling
 shared: true
@@ -12,9 +12,9 @@ Standard structure and patterns for writing Makefiles in Go and Python projects.
 
 ## Overview
 
-The Makefile is the single developer interface for a project — you always type `make <something>`, never a raw tool command directly. It should be short, self-documenting, and delegate complex logic to `run/` scripts.
+The Makefile is the single developer interface for a project — you always type `make <something>`, never a raw tool command directly. It should be short, self-documenting, and delegate complex logic to `make/` scripts.
 
-**Key principle**: The Makefile orchestrates; `run/` scripts do the work. If a target needs more than two or three shell lines, extract it to a script.
+**Key principle**: The Makefile orchestrates; `make/` scripts do the work. If a target needs more than two or three shell lines, extract it to a script.
 
 Use this skill when creating a Makefile for the first time. To update an existing Makefile that deviates from the standard, use `makefile-migrate`.
 
@@ -107,16 +107,16 @@ Targets without `##` are silently excluded from the help output. Use this intent
 
 ```makefile
 build: ## Build binary
-	@./run/build.sh
+	@./make/build.sh
 
 run: build ## Run the binary
 	@./$(BUILD_DIR)/$(BINARY_NAME)
 
 install: build ## Install binary to $(INSTALL_DIR)
-	@./run/install.sh --user
+	@./make/install.sh --user
 
 uninstall: ## Remove installed binary
-	@./run/uninstall.sh --user
+	@./make/uninstall.sh --user
 
 clean: ## Remove build artifacts and caches
 	@rm -rf $(BUILD_DIR)
@@ -148,7 +148,7 @@ For `lint`: if `golangci-lint` is not available, fall back to `go vet ./...` alo
 
 ```makefile
 test: ## Run all tests
-	@./run/test.sh
+	@./make/test.sh
 ```
 
 ### Info
@@ -162,7 +162,7 @@ version: ## Show version
 
 ```makefile
 setup: ## Create .venv and install dependencies
-	@./run/setup.sh
+	@./make/setup.sh
 
 fmt: ## Format Python sources with ruff
 	@.venv/bin/ruff format .
@@ -176,20 +176,20 @@ typecheck: ## Type-check with mypy
 quality: fmt lint typecheck ## Run all quality checks
 ```
 
-`setup` is the first target a new contributor runs. It must create `.venv` and install all dependencies so the project is ready to use. See `python-project-create` for the `run/setup.sh` contents.
+`setup` is the first target a new contributor runs. It must create `.venv` and install all dependencies so the project is ready to use. See `python-project-create` for the `make/setup.sh` contents.
 
 ---
 
-## Delegate-to-`run/` Pattern
+## Delegate-to-`make/` Pattern
 
-If a target needs more than two or three shell lines, extract the logic to a `run/` script and delegate:
+If a target needs more than two or three shell lines, extract the logic to a `make/` script and delegate:
 
 ```makefile
 build: ## Build binary
-	@./run/build.sh
+	@./make/build.sh
 
 test: ## Run all tests
-	@./run/test.sh
+	@./make/test.sh
 ```
 
 The `@` prefix suppresses echoing the command. Scripts get version information from environment variables or Makefile variables passed as arguments.
@@ -218,12 +218,12 @@ In a monorepo, the root Makefile is an orchestrator. It delegates to component s
 
 ```makefile
 build: ## Build all components
-	@go-component/run/build.sh
-	@python-component/run/setup.sh
+	@go-component/make/build.sh
+	@python-component/make/setup.sh
 
 test: ## Test all components
-	@go-component/run/test.sh
-	@python-component/run/test.sh
+	@go-component/make/test.sh
+	@python-component/make/test.sh
 ```
 
 **Pattern 2: `$(MAKE) -C` delegation (for symmetric components)**
@@ -269,13 +269,13 @@ help: ## Show available targets
 		| awk 'BEGIN {FS = ":.*## "} {printf "  %-15s %s\n", $$1, $$2}'
 
 build: ## Build binary
-	@./run/build.sh
+	@./make/build.sh
 
 run: build ## Run the binary
 	@./$(BUILD_DIR)/$(BINARY_NAME)
 
 test: ## Run all tests
-	@./run/test.sh
+	@./make/test.sh
 
 fmt: ## Format Go sources
 	@go fmt ./...
@@ -289,10 +289,10 @@ lint: ## Run golangci-lint
 quality: fmt vet lint ## Run all quality checks
 
 install: build ## Install binary to $(INSTALL_DIR)
-	@./run/install.sh --user
+	@./make/install.sh --user
 
 uninstall: ## Remove installed binary
-	@./run/uninstall.sh --user
+	@./make/uninstall.sh --user
 
 clean: ## Remove build artifacts and caches
 	@rm -rf $(BUILD_DIR)
@@ -323,10 +323,10 @@ help: ## Show available targets
 		| awk 'BEGIN {FS = ":.*## "} {printf "  %-15s %s\n", $$1, $$2}'
 
 setup: ## Create .venv and install dependencies
-	@./run/setup.sh
+	@./make/setup.sh
 
 test: ## Run all tests
-	@./run/test.sh
+	@./make/test.sh
 
 fmt: ## Format sources with ruff
 	@.venv/bin/ruff format .
@@ -340,10 +340,10 @@ typecheck: ## Type-check with mypy
 quality: fmt lint typecheck ## Run all quality checks
 
 install: ## Install entry points
-	@./run/install.sh
+	@./make/install.sh
 
 uninstall: ## Remove installed entry points
-	@./run/uninstall.sh
+	@./make/uninstall.sh
 
 clean: ## Remove build artifacts and caches
 	@rm -rf __pycache__ .mypy_cache .ruff_cache dist *.egg-info
@@ -360,7 +360,7 @@ clean: ## Remove build artifacts and caches
 
 ❌ **Targets without `##` inline comments** — the `help` target produces nothing useful; contributors have to read the Makefile to learn what targets exist.
 
-❌ **Multi-line shell logic inside the Makefile** — extraction to `run/` scripts makes logic testable, readable, and reusable from CI without going through Make.
+❌ **Multi-line shell logic inside the Makefile** — extraction to `make/` scripts makes logic testable, readable, and reusable from CI without going through Make.
 
 ❌ **Two Makefiles for one language project** — a single root Makefile is the rule. The monorepo exception (root orchestrator + component Makefiles) does not apply to single-component projects.
 
@@ -374,7 +374,7 @@ clean: ## Remove build artifacts and caches
 
 - Start every Makefile with `MAKEFLAGS += --no-print-directory` and `.DEFAULT_GOAL := help`
 - Every user-visible target gets an `##` inline doc comment
-- Delegate complex logic to `run/` scripts; keep the Makefile short
+- Delegate complex logic to `make/` scripts; keep the Makefile short
 - Declare all non-file targets in a single `.PHONY` line at the top
 - Use `quality: fmt vet lint` (Go) or `quality: fmt lint typecheck` (Python) as a commit-readiness shortcut
 
@@ -382,6 +382,6 @@ clean: ## Remove build artifacts and caches
 
 ## Related Skills
 
-- `go-project-create` — covers the `run/` scripts that Makefile targets delegate to
-- `python-project-create` — covers the `setup` target, `.venv` conventions, and `run/setup.sh`
+- `go-project-create` — covers the `make/` scripts that Makefile targets delegate to
+- `python-project-create` — covers the `setup` target, `.venv` conventions, and `make/setup.sh`
 - `monorepo-project-create` — root orchestrator Makefile pattern for multi-component repos

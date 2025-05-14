@@ -1,6 +1,6 @@
 ---
 name: makefile-migrate
-description: Reorganize existing Makefiles to match the standard structure. Covers adding mandatory opening lines, converting printf help to grep/awk, extracting shell logic to run/ scripts, adding .PHONY, and adding missing standard targets.
+description: Reorganize existing Makefiles to match the standard structure. Covers adding mandatory opening lines, converting printf help to grep/awk, extracting shell logic to make/ scripts, adding .PHONY, and adding missing standard targets.
 mode: manual
 category: tooling
 shared: true
@@ -18,7 +18,7 @@ Use this skill when a project has an existing Makefile that deviates from the st
 - Opens with `MAKEFLAGS += --no-print-directory` and `.DEFAULT_GOAL := help`
 - Has a single `.PHONY` declaration at the top
 - Uses the grep+awk self-documenting help pattern
-- Delegates complex logic to `run/` scripts
+- Delegates complex logic to `make/` scripts
 - Has all standard targets (`build`, `test`, `lint`, `fmt`, `clean`, `install`, `uninstall`, `quality`, `version`)
 
 ---
@@ -27,8 +27,8 @@ Use this skill when a project has an existing Makefile that deviates from the st
 
 1. Read the current Makefile in full — understand every target before changing anything.
 2. Compare against `makefile-create` — note which standard elements are missing.
-3. Check the `run/` directory — if scripts already exist, the delegation pattern may already be partially in place.
-4. Identify targets with multi-line shell logic that should move to `run/` scripts.
+3. Check the `make/` directory — if scripts already exist, the delegation pattern may already be partially in place.
+4. Identify targets with multi-line shell logic that should move to `make/` scripts.
 5. Confirm that any targets you rename or add do not break CI workflows or documented commands.
 
 ---
@@ -112,11 +112,11 @@ Steps:
 ```makefile
 .PHONY: build
 build:
-	@./run/build.sh
+	@./make/build.sh
 
 .PHONY: test
 test:
-	@./run/test.sh
+	@./make/test.sh
 
 .PHONY: clean
 clean:
@@ -136,7 +136,7 @@ Steps:
 
 ---
 
-### Scenario 4: Extract Multi-Line Shell to `run/`
+### Scenario 4: Extract Multi-Line Shell to `make/`
 
 **When**: A target contains more than 2-3 shell lines. The logic is hard to read, test, or reuse.
 
@@ -155,10 +155,10 @@ build:
 **After:**
 ```makefile
 build: ## Build binary
-	@./run/build.sh
+	@./make/build.sh
 ```
 
-And `run/build.sh`:
+And `make/build.sh`:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
@@ -177,11 +177,11 @@ echo "Done: $BUILD_DIR/$BINARY_NAME"
 ```
 
 Steps:
-1. Create `run/` directory if it does not exist.
-2. Extract the shell lines to `run/script-name.sh`.
+1. Create `make/` directory if it does not exist.
+2. Extract the shell lines to `make/script-name.sh`.
 3. Add `#!/usr/bin/env bash` and `set -euo pipefail` at the top of every new script.
-4. Make the script executable: `chmod +x run/script-name.sh`.
-5. Replace the target body with `@./run/script-name.sh`.
+4. Make the script executable: `chmod +x make/script-name.sh`.
+5. Replace the target body with `@./make/script-name.sh`.
 6. Variables that were in the Makefile (BINARY_NAME, VERSION, etc.) move into the script as local variables.
 
 Common scripts to extract: `build.sh`, `test.sh`, `install.sh`, `uninstall.sh`, `setup.sh`.
@@ -208,7 +208,7 @@ Requires the variables block (see Scenario 6).
 **`setup` target** (Python only — creates `.venv` and installs deps):
 ```makefile
 setup: ## Create .venv and install dependencies
-	@./run/setup.sh
+	@./make/setup.sh
 ```
 
 **`all` convenience target** (optional — runs the most common sequence):
@@ -263,15 +263,15 @@ Place the variables block after `.PHONY` and before the first target. Use `:=` (
 - [ ] Read the entire Makefile
 - [ ] List all targets that exist
 - [ ] Identify which standard targets are missing
-- [ ] Note targets with multi-line shell (candidates for `run/` extraction)
-- [ ] Check `run/` directory for existing scripts
+- [ ] Note targets with multi-line shell (candidates for `make/` extraction)
+- [ ] Check `make/` directory for existing scripts
 
 **During:**
 - [ ] Add mandatory opening lines (Scenario 1) first — this is always safe
 - [ ] Consolidate `.PHONY` (Scenario 3) — no behavior change, safe to do early
 - [ ] Convert help target (Scenario 2) — then verify `make help` output looks correct
 - [ ] Add variables block (Scenario 6) — before updating targets that use them
-- [ ] Extract shell to `run/` scripts (Scenario 4) — test each target after extraction
+- [ ] Extract shell to `make/` scripts (Scenario 4) — test each target after extraction
 - [ ] Add missing standard targets (Scenario 5) — test each new target
 
 **After:**
@@ -291,7 +291,7 @@ Place the variables block after `.PHONY` and before the first target. Use `:=` (
 - Never remove an existing target name — add aliases or keep the old name as a dependency if renaming
 - Keep backward-compatible target names so contributors with muscle memory are not broken
 - Always test `make help` after converting the help target — if grep finds nothing, check that `##` comments are on the correct targets
-- Scripts in `run/` must be executable (`chmod +x`) before the Makefile delegates to them
+- Scripts in `make/` must be executable (`chmod +x`) before the Makefile delegates to them
 - Do not add targets that are not needed by the project — migrate to the standard, not beyond it
 
 ---
@@ -305,5 +305,5 @@ Após concluir a migração do Makefile, invoque a skill `git-commit-suggest` pa
 ## Related Skills
 
 - `makefile-create` — the target state this skill migrates toward
-- `go-project-create` — covers the `run/` scripts that Makefile targets delegate to
+- `go-project-create` — covers the `make/` scripts that Makefile targets delegate to
 - `python-project-create` — covers `setup` target and `.venv` conventions

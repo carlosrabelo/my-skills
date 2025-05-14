@@ -81,7 +81,7 @@ Step-by-step installation instructions:
 git clone https://github.com/username/project
 cd project
 make build
-./run/install.sh
+./make/install.sh
 ```
 
 ### From Binary
@@ -122,7 +122,7 @@ project/
 ├── src/           ← Source code
 │   ├── cmd/       ← Commands
 │   └── internal/  ← Internal packages
-├── run/           ← Scripts
+├── make/           ← Scripts
 └── README.md      ← This file
 ```
 

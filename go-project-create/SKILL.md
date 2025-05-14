@@ -12,7 +12,7 @@ Comprehensive guide to organizing Go projects following modern Go conventions fo
 
 ## Overview
 
-This skill explains a flat root Go project structure where `go.mod` lives at the project root alongside `cmd/`, `internal/`, and `testdata/`. A single root Makefile handles orchestration, while `run/` scripts do the actual build/test work.
+This skill explains a flat root Go project structure where `go.mod` lives at the project root alongside `cmd/`, `internal/`, and `testdata/`. A single root Makefile handles orchestration, while `make/` scripts do the actual build/test work.
 
 **Key principle**: This structure follows the official Go module layout (go.dev/doc/modules/layout). All your Go projects — CLI tools, applications, and libraries — use the same pattern.
 
@@ -33,7 +33,7 @@ project-name/
 ├── cfg/                          ← Configuration files (optional)
 │   └── config.yaml               ← Default configuration
 │
-├── run/                          ← Automation scripts
+├── make/                          ← Automation scripts
 │   ├── build.sh                  ← Build script (go build)
 │   ├── test.sh                   ← Test script
 │   ├── install.sh                ← Install script
@@ -114,16 +114,16 @@ timeout: 30
 
 ---
 
-### `run/` — Automation Scripts
+### `make/` — Automation Scripts
 
 **Purpose**: Shell scripts for common development and deployment tasks.
 
 **Common scripts**:
 ```bash
-./run/build.sh       # Compile the project (go build)
-./run/test.sh        # Run all tests (go test)
-./run/install.sh     # Install binary to ~/.local/bin
-./run/uninstall.sh   # Remove installed binary
+./make/build.sh       # Compile the project (go build)
+./make/test.sh        # Run all tests (go test)
+./make/install.sh     # Install binary to ~/.local/bin
+./make/uninstall.sh   # Remove installed binary
 ```
 
 **Pattern**:
@@ -132,7 +132,7 @@ timeout: 30
 - Execute Go commands directly — do not delegate to make
 - Keep scripts simple and focused
 
-**Example `run/build.sh`**:
+**Example `make/build.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -279,13 +279,13 @@ func TestProcess(t *testing.T) {
 
 One Makefile at the project root. Keep it **simple and focused** — no unnecessary complexity.
 
-**Purpose**: Single entry point for all operations. Delegates build/test to `run/` scripts.
+**Purpose**: Single entry point for all operations. Delegates build/test to `make/` scripts.
 
 **Location**: `./Makefile` (project root)
 
 **Pattern**:
-- `build`, `test` → delegate to `./run/build.sh`, `./run/test.sh` (scripts do the real work)
-- `install`, `uninstall` → delegate to `./run/install.sh`, `./run/uninstall.sh`
+- `build`, `test` → delegate to `./make/build.sh`, `./make/test.sh` (scripts do the real work)
+- `install`, `uninstall` → delegate to `./make/install.sh`, `./make/uninstall.sh`
 - `lint`, `fmt`, `clean` → run Go commands directly
 
 **Example Makefile**:
@@ -297,10 +297,10 @@ MAKEFLAGS += --no-print-directory
 BINARY_NAME := project-name
 
 build:
-	./run/build.sh
+	./make/build.sh
 
 test:
-	./run/test.sh
+	./make/test.sh
 
 lint:
 	go vet ./...
@@ -313,10 +313,10 @@ clean:
 	rm -rf bin/
 
 install: build
-	./run/install.sh
+	./make/install.sh
 
 uninstall:
-	./run/uninstall.sh
+	./make/uninstall.sh
 
 help:
 	@echo "Usage: make <target>"
@@ -333,15 +333,15 @@ help:
 
 **Key principles**:
 - Root Makefile is the single entry point for all operations
-- `build` and `test` delegate to `run/` scripts
+- `build` and `test` delegate to `make/` scripts
 - `lint`, `fmt`, `clean` run Go commands directly (no second Makefile needed)
 - Keep it short and readable
 
 ---
 
-## run/ — Shell Scripts
+## make/ — Shell Scripts
 
-`run/` scripts are an **integral part** of the project structure — not an alternative to the Makefile. They do the actual build/test work, while the root Makefile simply invokes them.
+`make/` scripts are an **integral part** of the project structure — not an alternative to the Makefile. They do the actual build/test work, while the root Makefile simply invokes them.
 
 **Convention**:
 - Scripts execute `cd "$ROOT_DIR" && go ...` directly — they do not delegate to `make`
@@ -351,14 +351,14 @@ help:
 
 **Standard scripts**:
 ```bash
-run/
+make/
 ├── build.sh       # Build binary to bin/
 ├── test.sh        # Run all tests
 ├── install.sh     # Install to ~/.local/bin
 └── uninstall.sh   # Remove from ~/.local/bin
 ```
 
-**Example `run/build.sh`**:
+**Example `make/build.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -372,7 +372,7 @@ go build -o "$ROOT_DIR/bin/$BINARY_NAME" "./cmd/$BINARY_NAME"
 echo "Binary ready at: $ROOT_DIR/bin/$BINARY_NAME"
 ```
 
-**Example `run/test.sh`**:
+**Example `make/test.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -383,7 +383,7 @@ cd "$ROOT_DIR"
 go test -v ./...
 ```
 
-**Example `run/install.sh`**:
+**Example `make/install.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -396,7 +396,7 @@ cp "$ROOT_DIR/bin/$BINARY_NAME" "$INSTALL_DIR/$BINARY_NAME"
 echo "Installed: $INSTALL_DIR/$BINARY_NAME"
 ```
 
-**Example `run/uninstall.sh`**:
+**Example `make/uninstall.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -990,17 +990,17 @@ go build ./cmd/project-name
 cd cmd/project-name && go build
 ```
 
-**✅ GOOD: Always use `make build` or `./run/build.sh`**
+**✅ GOOD: Always use `make build` or `./make/build.sh`**
 
 ```bash
-# ✅ Uses run/build.sh which specifies -o bin/project-name
+# ✅ Uses make/build.sh which specifies -o bin/project-name
 make build
 
 # ✅ Or call the script directly
-./run/build.sh
+./make/build.sh
 ```
 
-The `run/build.sh` script always uses `-o "$ROOT_DIR/bin/$BINARY_NAME"`, which guarantees the binary goes to `bin/` regardless of the working directory.
+The `make/build.sh` script always uses `-o "$ROOT_DIR/bin/$BINARY_NAME"`, which guarantees the binary goes to `bin/` regardless of the working directory.
 
 As a safety net, add the binary name to `.gitignore` so a misplaced binary is never accidentally committed:
 
@@ -1019,7 +1019,7 @@ project-name          ← binary name without path, catches root-level builds
 - **`cmd/`** = Executable-specific logic and CLI interface
 - **`internal/`** = Reusable, testable business logic
 - **`cfg/`** = Runtime configuration defaults (optional)
-- **`run/`** = Development automation scripts
+- **`make/`** = Development automation scripts
 - **`bin/`** = Compiled outputs (don't commit)
 - **`testdata/`** = Test fixtures and data
 
@@ -1071,7 +1071,7 @@ Run with `make test` or `go test ./...`
 | Add new CLI command | `cmd/command-name/` | One binary per directory |
 | Add reusable logic | `internal/package-name/` | Used by multiple commands |
 | Add default configuration | `cfg/config.yaml` | Only if config needed |
-| Add build script | `run/script-name.sh` | Delegates to Go commands |
+| Add build script | `make/script-name.sh` | Delegates to Go commands |
 | Add test fixtures | `testdata/` | JSON, YAML, CSV, etc |
 | Add library for external use | `pkg/library-name/` | Only for publishable libs |
 
@@ -1165,7 +1165,7 @@ makalu/
 ├── go.mod
 ├── bin/
 ├── cfg/                  (optional)
-├── run/
+├── make/
 │   ├── build.sh
 │   └── test.sh
 ├── README.md
@@ -1203,7 +1203,7 @@ app/
 ├── bin/
 ├── cfg/
 │   └── config.yaml
-├── run/
+├── make/
 │   ├── build.sh
 │   ├── test.sh
 │   └── deploy.sh
@@ -1322,7 +1322,7 @@ coverage.html
 This skill applies to whichever directory contains `go.mod` — that is the Go project root, regardless of where the git root is.
 
 - `go.mod` lives at `<component>/`, not at the git root
-- `<component>/run/` scripts resolve `ROOT_DIR` to the component dir: `$(cd "$(dirname "$0")/.." && pwd)`
+- `<component>/make/` scripts resolve `ROOT_DIR` to the component dir: `$(cd "$(dirname "$0")/.." && pwd)`
 - The git root has a separate orchestrator Makefile — this is **not** Anti-Pattern 8 (Two Makefiles)
 
 See **monorepo-project-create** for the full monorepo layout, root Makefile patterns, and component naming conventions.

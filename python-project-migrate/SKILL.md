@@ -21,7 +21,7 @@ project-name/
 ├── main.py           ← Entry point with shebag (≤50 lines)
 ├── processor.py      ← Domain-specific modules at root
 ├── errors.py         ← Custom exception types
-├── run/              ← Automation scripts
+├── make/              ← Automation scripts
 │   ├── install.sh
 │   └── uninstall.sh
 └── tests/
@@ -125,7 +125,7 @@ typecheck:
 	.venv/bin/mypy $(PY_FILES)
 ```
 
-5. **Update `run/lint.sh`** and **`run/install.sh`**:
+5. **Update `make/lint.sh`** and **`make/install.sh`**:
 ```bash
 # Old: "$ROOT_DIR/.venv/bin/ruff" check src/ tests/
 # New:
@@ -467,7 +467,7 @@ python_version = "3.12"
 strict = true
 ```
 
-2. **Update `run/setup.sh`** to install from `pyproject.toml` instead of `requirements.txt`:
+2. **Update `make/setup.sh`** to install from `pyproject.toml` instead of `requirements.txt`:
 ```bash
 # Old:
 "$ROOT_DIR/.venv/bin/pip" install -r "$ROOT_DIR/requirements.txt"
@@ -536,9 +536,9 @@ This skill applies to whichever directory contains `pyproject.toml` — that is 
 
 When migrating a Python component inside a monorepo:
 
-- Treat `<component>/` as the project root throughout all scenarios. `pyproject.toml`, `.venv`, `Makefile`, `run/`, and all source files live there.
+- Treat `<component>/` as the project root throughout all scenarios. `pyproject.toml`, `.venv`, `Makefile`, `make/`, and all source files live there.
 - The self-relaunching shebag works unchanged: `Path(__file__).resolve().parent` resolves to `<component>/` — no path adjustments needed.
-- `run/setup.sh` computes `ROOT_DIR` as `$(dirname "$0")/..`, resolving to `<component>/`. `.venv` is created there, isolated from the git root.
+- `make/setup.sh` computes `ROOT_DIR` as `$(dirname "$0")/..`, resolving to `<component>/`. `.venv` is created there, isolated from the git root.
 - Sub-packages inside `<component>/` are legitimate domain packages — not Anti-Pattern 2.
 
 See **monorepo-project-create** for the full monorepo layout and root Makefile patterns.

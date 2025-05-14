@@ -276,7 +276,7 @@ cmd/project-name/    # Go entry point
 internal/domain/     # Core business logic
 internal/cli/        # Command definitions and user interaction
 bin/                 # Compiled binaries (git-ignored)
-run/                 # Build and install scripts
+make/                 # Build and install scripts
 cfg/                 # Default configuration files
 ```
 ```

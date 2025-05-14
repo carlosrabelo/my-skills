@@ -33,21 +33,21 @@ Skills cover Go and Python project structure, Git workflows, code documentation,
 
 | Skill | Mode | Description |
 |-------|------|-------------|
-| `go-project-create` | agent | Standard Go project layout: flat root with `go.mod`, single Makefile, `cmd/`, `internal/`, `run/` scripts |
+| `go-project-create` | agent | Standard Go project layout: flat root with `go.mod`, single Makefile, `cmd/`, `internal/`, `make/` scripts |
 | `go-project-migrate` | manual | Migrate an existing Go project to the standard flat root structure (go.mod at root, cmd/, internal/, single Makefile) |
 
 ### Python
 
 | Skill | Mode | Description |
 |-------|------|-------------|
-| `python-project-create` | agent | Standard Python project layout: flat root, `pyproject.toml`, `.venv`, single Makefile, `run/` scripts |
+| `python-project-create` | agent | Standard Python project layout: flat root, `pyproject.toml`, `.venv`, single Makefile, `make/` scripts |
 | `python-project-migrate` | manual | Migrate an existing Python project to the standard flat root layout (source files at root, sub-packages only when justified, tests/) |
 
 ### Tooling
 
 | Skill | Mode | Description |
 |-------|------|-------------|
-| `makefile-create` | agent | Create a Makefile from scratch with standard structure: opening lines, self-documenting help, standard targets, delegate-to-run/ pattern |
+| `makefile-create` | agent | Create a Makefile from scratch with standard structure: opening lines, self-documenting help, standard targets, delegate-to-make/ pattern |
 | `makefile-migrate` | manual | Migrate an existing Makefile to the standard structure |
 
 ### Documentation

@@ -26,12 +26,12 @@ monorepo/
 │   ├── Makefile
 │   ├── go.mod
 │   ├── bin/
-│   └── run/
+│   └── make/
 └── python-component/     ← Python root (pyproject.toml here)
     ├── Makefile
     ├── pyproject.toml
     ├── .venv/
-    └── run/
+    └── make/
 ```
 
 ---
@@ -57,7 +57,7 @@ ls go.mod pyproject.toml 2>/dev/null
 # What components already exist?
 ls -d */ 2>/dev/null
 
-# Where are existing run/ scripts?
+# Where are existing make/ scripts?
 find . -name "*.sh" -not -path "./.venv/*" -not -path "*/vendor/*"
 ```
 
@@ -76,7 +76,7 @@ repo/
 ├── go.mod
 ├── go.sum
 ├── bin/
-├── run/
+├── make/
 │   ├── build.sh
 │   └── test.sh
 ├── cmd/
@@ -96,18 +96,18 @@ mv go.mod go.sum go-component/
 mv cmd/ internal/ go-component/
 mv Makefile go-component/
 mv bin/ go-component/
-mv run/ go-component/
+mv make/ go-component/
 mv .gitignore go-component/    # if it's Go-specific
 ```
 
-3. **Fix ROOT_DIR in run/ scripts** — was resolving to git root, now must resolve to `<component>/`:
+3. **Fix ROOT_DIR in make/ scripts** — was resolving to git root, now must resolve to `<component>/`:
 ```bash
 # Before (resolved to repo/):
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 # After (resolves to go-component/):
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-# No change needed! The script is now at go-component/run/,
+# No change needed! The script is now at go-component/make/,
 # so $(dirname "$0")/.. still resolves to go-component/.
 ```
 
@@ -117,10 +117,10 @@ MAKEFLAGS += --no-print-directory
 .PHONY: build test
 
 build:
-	go-component/run/build.sh
+	go-component/make/build.sh
 
 test:
-	go-component/run/test.sh
+	go-component/make/test.sh
 ```
 
 5. **Create a root `.gitignore`** (if needed):
@@ -148,7 +148,7 @@ repo/
 ├── Makefile
 ├── pyproject.toml
 ├── .venv/
-├── run/
+├── make/
 │   ├── setup.sh
 │   └── test.sh
 ├── main.py
@@ -171,7 +171,7 @@ mkdir python-component    # use a domain-specific name
 ```bash
 mv pyproject.toml python-component/
 mv Makefile python-component/
-mv run/ python-component/
+mv make/ python-component/
 mv tests/ python-component/    # if exists
 mv *.py python-component/
 # Move sub-packages if any:
@@ -183,7 +183,7 @@ mv *.py python-component/
 rm -rf .venv
 cd python-component
 python3 -m venv .venv
-run/setup.sh    # reinstalls dependencies
+make/setup.sh    # reinstalls dependencies
 ```
 
 5. **Verify shebag paths** — `Path(__file__).resolve().parent` now resolves to `python-component/`, where `.venv` is a sibling. No changes needed if shebag used `parent` (not `parent.parent`).
@@ -194,10 +194,10 @@ MAKEFLAGS += --no-print-directory
 .PHONY: setup test
 
 setup:
-	python-component/run/setup.sh
+	python-component/make/setup.sh
 
 test:
-	python-component/run/test.sh
+	python-component/make/test.sh
 ```
 
 7. **Verify**:
@@ -235,7 +235,7 @@ mkdir api-server    # domain-specific name
 ```bash
 mv go.mod go.sum api-server/
 mv cmd/ internal/ api-server/
-mv bin/ run/ api-server/    # if they exist and are Go-specific
+mv bin/ make/ api-server/    # if they exist and are Go-specific
 ```
 
 3. **Split the Makefile**:
@@ -286,7 +286,7 @@ git read-tree --prefix=python-pipeline/ -u python-pipeline/main
 git commit -m "import python-pipeline as monorepo component"
 ```
 
-4. **Fix ROOT_DIR in run/ scripts** — each component's scripts now live one level deeper (inside the component dir), but since they use `$(dirname "$0")/..`, they already resolve correctly.
+4. **Fix ROOT_DIR in make/ scripts** — each component's scripts now live one level deeper (inside the component dir), but since they use `$(dirname "$0")/..`, they already resolve correctly.
 
 5. **Create the root orchestrator Makefile**.
 
@@ -309,11 +309,11 @@ git mv backend/ api-server/
 ```makefile
 # Old:
 build:
-	backend/run/build.sh
+	backend/make/build.sh
 
 # New:
 build:
-	api-server/run/build.sh
+	api-server/make/build.sh
 ```
 
 3. **Update CI/CD configs** — `.github/workflows/`, `Dockerfile`, etc.

@@ -1,6 +1,6 @@
 ---
 name: python-project-create
-description: Guide to organizing Python projects with pyproject.toml, .venv, flat root layout (no src/), Makefile hierarchy, and run/ scripts. Source files live at project root, sub-packages only when truly needed. Covers shebag using .venv, testing patterns, error handling.
+description: Guide to organizing Python projects with pyproject.toml, .venv, flat root layout (no src/), Makefile hierarchy, and make/ scripts. Source files live at project root, sub-packages only when truly needed. Covers shebag using .venv, testing patterns, error handling.
 mode: agent
 category: python
 shared: true
@@ -12,7 +12,7 @@ Comprehensive guide to organizing Python projects following a consistent pattern
 
 ## Overview
 
-This skill explains a pragmatic Python project structure where source files live directly at the project root, the virtual environment stays as `.venv`, and `pyproject.toml` defines the project. Uses a hierarchical Makefile approach: root Makefile for orchestration, `run/` scripts for the actual work.
+This skill explains a pragmatic Python project structure where source files live directly at the project root, the virtual environment stays as `.venv`, and `pyproject.toml` defines the project. Uses a hierarchical Makefile approach: root Makefile for orchestration, `make/` scripts for the actual work.
 
 **Key principles**:
 - `.venv` is always at the project root — a sibling of the source files
@@ -34,7 +34,7 @@ project-name/
 │
 ├── pyproject.toml                ← Project metadata, dependencies, tool config
 │
-├── run/                          ← Automation scripts
+├── make/                          ← Automation scripts
 │   ├── setup.sh                  ← Create .venv and install dependencies
 │   ├── test.sh                   ← Run tests
 │   ├── lint.sh                   ← Run linter
@@ -154,7 +154,7 @@ pip install ".[dev]"
 
 ## Makefile
 
-**Purpose**: Single entry point for all operations. Delegates to `run/` scripts.
+**Purpose**: Single entry point for all operations. Delegates to `make/` scripts.
 
 **Location**: Project root.
 
@@ -166,13 +166,13 @@ PY_FILES := $(wildcard *.py)
 .PHONY: setup test lint fmt typecheck clean install help
 
 setup:
-	./run/setup.sh
+	./make/setup.sh
 
 test:
-	./run/test.sh
+	./make/test.sh
 
 lint:
-	./run/lint.sh
+	./make/lint.sh
 
 fmt:
 	.venv/bin/ruff format $(PY_FILES) tests/
@@ -186,7 +186,7 @@ clean:
 	find . -type f -name "*.pyc" -delete
 
 install: setup
-	./run/install.sh
+	./make/install.sh
 
 help:
 	@echo "Usage: make <target>"
@@ -203,7 +203,7 @@ help:
 
 ---
 
-## run/ — Shell Scripts
+## make/ — Shell Scripts
 
 Scripts do the actual work directly. The Makefile simply invokes them.
 
@@ -212,7 +212,7 @@ Scripts do the actual work directly. The Makefile simply invokes them.
 - Activate `.venv` before running Python commands
 - Keep scripts simple and focused
 
-**Example `run/setup.sh`**:
+**Example `make/setup.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -229,7 +229,7 @@ echo "Installing dependencies..."
 echo "Setup complete."
 ```
 
-**Example `run/test.sh`**:
+**Example `make/test.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -239,7 +239,7 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 "$ROOT_DIR/.venv/bin/pytest" "$ROOT_DIR/tests/" "$@"
 ```
 
-**Example `run/lint.sh`**:
+**Example `make/lint.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -249,7 +249,7 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 "$ROOT_DIR/.venv/bin/ruff" check "$ROOT_DIR"/*.py tests/
 ```
 
-**Example `run/install.sh`**:
+**Example `make/install.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -690,7 +690,7 @@ Thumbs.db
 # ❌ BAD
 git add .venv/
 
-# ✅ GOOD: .venv in .gitignore, reproducible via run/setup.sh
+# ✅ GOOD: .venv in .gitignore, reproducible via make/setup.sh
 ```
 
 ### ❌ Anti-Pattern 2: Wrapping Source Files in a Package
@@ -795,7 +795,7 @@ reader.py
 ### 1. Virtual Environment
 - Always `.venv` at project root
 - Scripts at root use `parent / ".venv"` to find it
-- Reproducible via `run/setup.sh`
+- Reproducible via `make/setup.sh`
 
 ### 2. Dependencies
 - Runtime deps in `[project.dependencies]`

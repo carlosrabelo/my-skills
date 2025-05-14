@@ -1,6 +1,6 @@
 ---
 name: go-project-migrate
-description: Reorganize existing Go projects to match the standard flat root structure (go.mod at root, cmd/, internal/, single Makefile, run/ scripts). Handles migration from src/ layout, monolithic code, and missing structure.
+description: Reorganize existing Go projects to match the standard flat root structure (go.mod at root, cmd/, internal/, single Makefile, make/ scripts). Handles migration from src/ layout, monolithic code, and missing structure.
 mode: manual
 category: go
 shared: true
@@ -20,7 +20,7 @@ project/
 ├── go.mod            ← At project root (NEVER in src/)
 ├── go.sum
 ├── bin/              ← Compiled binaries (.gitignore)
-├── run/              ← Automation scripts
+├── make/              ← Automation scripts
 │   ├── build.sh
 │   ├── test.sh
 │   ├── install.sh
@@ -69,14 +69,14 @@ wc -l $(find . -name "main.go" -not -path "./vendor/*")
 
 ### Scenario 1: Migrate from src/ Layout
 
-**Symptom**: `go.mod` is inside `src/`, dual Makefiles, `run/` scripts use `cd "$ROOT_DIR/src"`.
+**Symptom**: `go.mod` is inside `src/`, dual Makefiles, `make/` scripts use `cd "$ROOT_DIR/src"`.
 
 **Before**:
 ```
 project/
 ├── Makefile              ← Delegates with make -C src
 ├── bin/
-├── run/
+├── make/
 │   └── build.sh          ← cd "$ROOT_DIR/src" && go build ...
 └── src/
     ├── Makefile           ← Second Makefile
@@ -119,7 +119,7 @@ lint:
 	go vet ./...
 ```
 
-5. **Update run/ scripts** — change `cd "$ROOT_DIR/src"` to `cd "$ROOT_DIR"`:
+5. **Update make/ scripts** — change `cd "$ROOT_DIR/src"` to `cd "$ROOT_DIR"`:
 ```bash
 # Before:
 cd "$ROOT_DIR/src"
@@ -192,7 +192,7 @@ func main() {
 }
 ```
 
-5. **Add run/ scripts and Makefile** (see go-project-create)
+5. **Add make/ scripts and Makefile** (see go-project-create)
 
 6. **Delete old files from root**:
 ```bash
@@ -242,13 +242,13 @@ go build ./cmd/project-name
 
 ---
 
-### Scenario 4: Missing run/ Scripts and Makefile
+### Scenario 4: Missing make/ Scripts and Makefile
 
 **Symptom**: Project has Go code but no automation.
 
 **Steps**:
 
-1. **Create run/build.sh**:
+1. **Create make/build.sh**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -262,7 +262,7 @@ go build -o "$ROOT_DIR/bin/$BINARY_NAME" "./cmd/$BINARY_NAME"
 echo "Binary ready at: $ROOT_DIR/bin/$BINARY_NAME"
 ```
 
-2. **Create run/test.sh**:
+2. **Create make/test.sh**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -273,11 +273,11 @@ cd "$ROOT_DIR"
 go test -v ./...
 ```
 
-3. **Create run/install.sh and run/uninstall.sh** (see go-project-create)
+3. **Create make/install.sh and make/uninstall.sh** (see go-project-create)
 
 4. **Make executable**:
 ```bash
-chmod +x run/*.sh
+chmod +x make/*.sh
 ```
 
 5. **Create/replace Makefile** at project root:
@@ -286,10 +286,10 @@ MAKEFLAGS += --no-print-directory
 .PHONY: build test lint fmt clean install uninstall
 
 build:
-	./run/build.sh
+	./make/build.sh
 
 test:
-	./run/test.sh
+	./make/test.sh
 
 lint:
 	go vet ./...
@@ -302,10 +302,10 @@ clean:
 	rm -rf bin/
 
 install: build
-	./run/install.sh
+	./make/install.sh
 
 uninstall:
-	./run/uninstall.sh
+	./make/uninstall.sh
 ```
 
 ---
@@ -396,7 +396,7 @@ rm -rf internal/utils/
 - [ ] No unused imports
 - [ ] `main.go` ≤ 50 lines
 - [ ] Single Makefile at root
-- [ ] `run/` scripts present and executable
+- [ ] `make/` scripts present and executable
 - [ ] No `src/` directory
 - [ ] `bin/` in `.gitignore`
 - [ ] Commit with clear message
@@ -419,8 +419,8 @@ This skill applies to whichever directory contains `go.mod` — that is the Go p
 
 When migrating a Go component inside a monorepo:
 
-- Treat `<component>/` as the project root throughout all scenarios. `go.mod`, `Makefile`, `run/`, `cmd/`, and `internal/` all live there.
-- `run/` scripts compute `ROOT_DIR` as `$(dirname "$0")/..`, resolving to `<component>/` — not the git root.
+- Treat `<component>/` as the project root throughout all scenarios. `go.mod`, `Makefile`, `make/`, `cmd/`, and `internal/` all live there.
+- `make/` scripts compute `ROOT_DIR` as `$(dirname "$0")/..`, resolving to `<component>/` — not the git root.
 - The git root has a separate orchestrator Makefile — this is **not** a violation of the single-Makefile rule.
 - When updating `.gitignore`, paths are relative to `<component>/`, not the git root.
 
