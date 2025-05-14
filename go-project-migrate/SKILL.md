@@ -434,7 +434,6 @@ Após concluir todos os passos acima:
 
 1. **Verifique o Makefile** — se existir mas não seguir o padrão de `makefile-create`, invoque a skill `makefile-migrate`
 2. **Verifique os READMEs** — se `README.md` ou `README-PT.md` precisarem de atualização, invoque a skill `readme-migrate`
-3. **Invoque `git-commit-suggest`** para preparar o commit com as mudanças feitas
 
 ---
 
