@@ -235,7 +235,6 @@ Steps:
 - [ ] `## Project Layout` used (not `## Project Structure`), no `src/` entries (Scenario 4 check)
 - [ ] Both files exist (Scenario 5 check)
 - [ ] `diff <(grep "^[#]" README.md) <(grep "^[#]" README-PT.md)` shows no differences
-- [ ] Commit both files together: `git add README.md README-PT.md`
 
 ---
 
@@ -249,12 +248,11 @@ Steps:
 
 ---
 
-## Encadeamento
+## Chaining
 
-Após concluir a migração do README:
+After completing the README migration:
 
-1. **Sempre** invoque a skill `readme-bilingual-sync` para verificar e sincronizar `README-PT.md`
-2. Após o `readme-bilingual-sync` concluir, invoque a skill `git-commit-suggest` para preparar o commit com as mudanças feitas
+1. **Always** invoke the `readme-bilingual-sync` skill to verify and sync `README-PT.md`
 
 ---
 

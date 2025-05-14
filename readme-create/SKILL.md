@@ -440,9 +440,9 @@ This project is licensed under the MIT License — see [LICENSE](LICENSE) for de
 
 ---
 
-## Encadeamento
+## Chaining
 
-Após criar `README.md`, **sempre** invoque a skill `readme-bilingual-sync` para criar `README-PT.md` como tradução completa.
+After creating `README.md`, **always** invoke the `readme-bilingual-sync` skill to create `README-PT.md` as a full translation.
 
 ---
 

@@ -1346,15 +1346,15 @@ See **monorepo-project-create** for the full monorepo layout, root Makefile patt
 
 ---
 
-## Encadeamento
+## Chaining
 
-Ao criar um projeto Go completo do zero, o fluxo completo envolve estas skills na ordem:
+When creating a complete Go project from scratch, the full workflow involves these skills in order:
 
-1. **`makefile-create`** — criar o Makefile com os targets padrão
-2. **`readme-create`** — criar `README.md` com a estrutura padrão
-3. **`readme-bilingual-sync`** — criar `README-PT.md` como tradução de `README.md`
+1. **`makefile-create`** — create the Makefile with standard targets
+2. **`readme-create`** — create `README.md` with the standard structure
+3. **`readme-bilingual-sync`** — create `README-PT.md` as a translation of `README.md`
 
-Estas skills são automáticas (modo `agent`) e são acionadas naturalmente ao criar os respectivos arquivos. A ordem acima é a sequência correta.
+These skills run automatically (agent mode) and are triggered naturally when creating the respective files. The order above is the correct sequence.
 
 ---
 

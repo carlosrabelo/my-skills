@@ -360,15 +360,14 @@ make build && make test
 
 ---
 
-## Encadeamento
+## Chaining
 
-Após concluir todos os passos acima:
+After completing all steps above:
 
-1. **Para cada componente Go** — invoque a skill `go-project-migrate` para verificar e corrigir a estrutura interna
-2. **Para cada componente Python** — invoque a skill `python-project-migrate` para verificar e corrigir a estrutura interna
-3. **Verifique o Makefile raiz** — se não seguir o padrão de `makefile-create`, invoque a skill `makefile-migrate`
-4. **Verifique os READMEs raiz** — se `README.md` ou `README-PT.md` precisarem de atualização, invoque a skill `readme-migrate`
-5. **Invoque `git-commit-suggest`** para preparar o commit com as mudanças feitas
+1. **For each Go component** — invoke the `go-project-migrate` skill to verify and fix the internal structure
+2. **For each Python component** — invoke the `python-project-migrate` skill to verify and fix the internal structure
+3. **Check the root Makefile** — if it does not follow the `makefile-create` standard, invoke the `makefile-migrate` skill
+4. **Check the root READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-migrate` skill
 
 ---
 

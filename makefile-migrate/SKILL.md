@@ -296,10 +296,6 @@ Place the variables block after `.PHONY` and before the first target. Use `:=` (
 
 ---
 
-## Encadeamento
-
-Após concluir a migração do Makefile, invoque a skill `git-commit-suggest` para preparar o commit com as mudanças feitas.
-
 ---
 
 ## Related Skills

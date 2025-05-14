@@ -417,29 +417,6 @@ Update in this order:
 
 ---
 
-## Integration with git-commit-suggest
-
-When committing documentation updates:
-
-```bash
-# Analyze changes before committing
-# Should show both README files modified
-
-# Suggested commit
-git commit -m "docs: add validation feature documentation" \
-  -m "Adds documentation for new validation system in both English and Portuguese"
-
-# Or for translation fixes
-git commit -m "docs: fix Portuguese translation" \
-  -m "Corrects grammar and terminology in README-PT.md"
-```
-
----
-
-## Encadeamento
-
-Quando invocada como passo final de um fluxo maior (e não como subpasso de `readme-migrate`), invoque a skill `git-commit-suggest` para preparar o commit com as mudanças feitas.
-
 ---
 
 ## Related Skills

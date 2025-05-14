@@ -545,13 +545,12 @@ See **monorepo-project-create** for the full monorepo layout and root Makefile p
 
 ---
 
-## Encadeamento
+## Chaining
 
-Após concluir todos os passos acima:
+After completing all steps above:
 
-1. **Verifique o Makefile** — se existir mas não seguir o padrão de `makefile-create`, invoque a skill `makefile-migrate`
-2. **Verifique os READMEs** — se `README.md` ou `README-PT.md` precisarem de atualização, invoque a skill `readme-migrate`
-3. **Invoque `git-commit-suggest`** para preparar o commit com as mudanças feitas
+1. **Check the Makefile** — if it exists but does not follow the `makefile-create` standard, invoke the `makefile-migrate` skill
+2. **Check the READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-migrate` skill
 
 ---
 
