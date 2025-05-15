@@ -1352,7 +1352,7 @@ When creating a complete Go project from scratch, the full workflow involves the
 
 1. **`makefile-create`** — create the Makefile with standard targets
 2. **`readme-create`** — create `README.md` with the standard structure
-3. **`readme-bilingual-sync`** — create `README-PT.md` as a translation of `README.md`
+3. **`readme-bilingual`** — create `README-PT.md` as a translation of `README.md`
 
 These skills run automatically (agent mode) and are triggered naturally when creating the respective files. The order above is the correct sequence.
 

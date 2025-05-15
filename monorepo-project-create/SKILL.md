@@ -41,7 +41,7 @@ monorepo/
 
 ## Root Orchestrator Makefile
 
-The root Makefile only delegates — it never contains language-specific build or test logic:
+The root Makefile primarily delegates to components. It may also contain global-only targets — `deploy`, `release`, `ci`, `infra-apply`, `docs` — that span multiple components or have no single component owner. What it must never contain is language-specific build or test logic (`go build`, `pip install` directly in targets):
 
 ```makefile
 MAKEFLAGS += --no-print-directory
@@ -104,7 +104,7 @@ Each component:
 |---|---|
 | `go.mod` at git root | Makes the monorepo a pure Go project; other components become sub-packages |
 | `pyproject.toml` or `.venv` at git root | Python tooling takes over the entire repo |
-| Root Makefile with language-specific build logic | Mixes orchestration with implementation |
+| Root Makefile with language-specific build logic | Mixes orchestration with implementation — use component Makefiles for `go build`, `pip install`, etc.; global targets like `deploy` and `ci` are fine at root |
 | Shared `bin/` at git root | Binary naming conflicts across components |
 | Component named `src/` or `lib/` | No domain meaning; misleads future contributors |
 
@@ -131,3 +131,4 @@ Each component:
 - **monorepo-project-migrate** — Migrate an existing repo or single-component project to this layout
 - **go-project-migrate** — Migrate an existing Go project to the standard layout
 - **python-project-migrate** — Migrate an existing Python project to the standard layout
+- **makefile-migrate** — Bring the root orchestrator Makefile up to the standard structure

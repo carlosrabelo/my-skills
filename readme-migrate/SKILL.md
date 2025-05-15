@@ -182,3 +182,5 @@ Steps:
 - `readme-bilingual` — create or update the Portuguese translation after migrating README.md
 - `go-project-create` — the directory layout that Project Layout should reflect for Go projects
 - `python-project-create` — same, for Python projects
+- `go-project-migrate` — invokes this skill as part of its Chaining sequence
+- `python-project-migrate` — invokes this skill as part of its Chaining sequence

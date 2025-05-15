@@ -240,6 +240,32 @@ test: ## Test all components
 
 Each component has its own Makefile following this same guide. The root Makefile only orchestrates.
 
+### Global-Only Targets
+
+Some targets belong at the root because they span all components or represent concerns that do not live in any single component. These are not anti-patterns — they are legitimate root-level responsibilities.
+
+```makefile
+# Operational — orchestrate multiple components in one operation
+deploy: ## Deploy all components to production
+	@./make/deploy.sh
+
+release: ## Tag and publish a new release
+	@./make/release.sh
+
+# CI pipeline — run the full sequence across all components
+ci: quality test build ## Full CI pipeline
+
+# Infrastructure — genuinely has no single component owner
+infra-apply: ## Apply Terraform configuration
+	@./make/infra-apply.sh
+
+# Combined docs — aggregate output from multiple components
+docs: ## Generate combined documentation
+	@./make/docs.sh
+```
+
+**The rule**: a root target is appropriate when it (a) orchestrates multiple components in a single operation, or (b) represents infrastructure or tooling that has no single component owner. Language-specific build and test logic — `go build`, `pip install` — belongs in the component Makefile, not the root.
+
 ---
 
 ## Full Go Example
@@ -385,3 +411,4 @@ clean: ## Remove build artifacts and caches
 - `go-project-create` — covers the `make/` scripts that Makefile targets delegate to
 - `python-project-create` — covers the `setup` target, `.venv` conventions, and `make/setup.sh`
 - `monorepo-project-create` — root orchestrator Makefile pattern for multi-component repos
+- `makefile-migrate` — step-by-step guide for bringing an existing Makefile up to this standard

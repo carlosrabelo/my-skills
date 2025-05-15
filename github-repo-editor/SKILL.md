@@ -231,14 +231,7 @@ gh repo view --web  # Opens on GitHub
 
 ## Related Skills
 
-- **readme-bilingual-sync** — For creating comprehensive project documentation
+- **readme-bilingual** — For creating comprehensive project documentation
 - **git-commit-suggest** — For committing changes after updating repository metadata
 - **go-project-create** — For documenting project structure
 
-## Changelog
-
-- **v1.0** (2025-03-12) — Initial shared version
-  - Generates gh repo edit commands with description and topics
-  - Description guidelines (max 350 chars)
-  - Topic selection guidelines (3-5 topics)
-  - Output format with project analysis summary

@@ -414,4 +414,5 @@ This project is licensed under the MIT License — see [LICENSE](LICENSE) for de
 - `readme-migrate` — bring an existing README.md up to this standard
 - `makefile-create` — the make targets shown in the Development section
 - `go-project-create` — the directory layout that Project Layout should reflect for Go projects
+- `github-repo-editor` — update GitHub repository description and topics after the README is ready
 - `python-project-create` — same, for Python projects

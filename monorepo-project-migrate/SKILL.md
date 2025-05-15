@@ -114,13 +114,23 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 4. **Create the root orchestrator Makefile**:
 ```makefile
 MAKEFLAGS += --no-print-directory
-.PHONY: build test
 
-build:
-	go-component/make/build.sh
+.DEFAULT_GOAL := help
 
-test:
-	go-component/make/test.sh
+.PHONY: build help test
+
+help: ## Show available targets
+	@echo "monorepo - Available targets"
+	@echo ""
+	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) \
+		| sort \
+		| awk 'BEGIN {FS = ":.*## "} {printf "  %-15s %s\n", $$1, $$2}'
+
+build: ## Build all components
+	@go-component/make/build.sh
+
+test: ## Test all components
+	@go-component/make/test.sh
 ```
 
 5. **Create a root `.gitignore`** (if needed):
@@ -191,13 +201,23 @@ make/setup.sh    # reinstalls dependencies
 6. **Create the root orchestrator Makefile**:
 ```makefile
 MAKEFLAGS += --no-print-directory
-.PHONY: setup test
 
-setup:
-	python-component/make/setup.sh
+.DEFAULT_GOAL := help
 
-test:
-	python-component/make/test.sh
+.PHONY: help setup test
+
+help: ## Show available targets
+	@echo "monorepo - Available targets"
+	@echo ""
+	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) \
+		| sort \
+		| awk 'BEGIN {FS = ":.*## "} {printf "  %-15s %s\n", $$1, $$2}'
+
+setup: ## Set up all components
+	@python-component/make/setup.sh
+
+test: ## Test all components
+	@python-component/make/test.sh
 ```
 
 7. **Verify**:
@@ -336,7 +356,7 @@ make build && make test
 - [ ] Move files to `<component>/`
 - [ ] Never move `.venv/` — recreate it inside the component
 - [ ] Fix ROOT_DIR only if scripts moved to a different depth
-- [ ] Root Makefile delegates only — no build logic
+- [ ] Root Makefile has no language-specific build logic — global targets (deploy, ci, release) are allowed
 
 ### After
 - [ ] `go test ./...` passes inside each Go component
@@ -356,7 +376,7 @@ make build && make test
 - **Never add language files to the git root** — not even temporarily
 - **Rename directories with `git mv`**, not `mv`, to preserve history
 - **Reorganize before adding new features** — separate commits for structure vs. behavior
-- **Root Makefile delegates only** — if you catch yourself writing `go build` in the root Makefile, stop
+- **Root Makefile must not contain language-specific build or test logic** — if you catch yourself writing `go build` or `pip install` directly in a root target, move it to the component Makefile. Global targets like `deploy`, `ci`, `release`, and `infra-apply` are fine at root.
 
 ---
 
@@ -368,6 +388,7 @@ After completing all steps above:
 2. **For each Python component** — invoke the `python-project-migrate` skill to verify and fix the internal structure
 3. **Check the root Makefile** — if it does not follow the `makefile-create` standard, invoke the `makefile-migrate` skill
 4. **Check the root READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-migrate` skill
+5. **Commit the changes** — invoke the `git-commit-suggest` skill to stage and commit the reorganization
 
 ---
 

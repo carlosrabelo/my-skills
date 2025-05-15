@@ -434,6 +434,7 @@ After completing all steps above:
 
 1. **Check the Makefile** — if it exists but does not follow the `makefile-create` standard, invoke the `makefile-migrate` skill
 2. **Check the READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-migrate` skill
+3. **Commit the changes** — invoke the `git-commit-suggest` skill to stage and commit the reorganization
 
 ---
 

@@ -110,3 +110,4 @@ Use this skill when:
 
 - `readme-create` — standard for writing README.md from scratch
 - `readme-migrate` — bring an existing README.md up to the standard before translating
+- `github-repo-editor` — update GitHub repository description and topics after both READMEs are ready

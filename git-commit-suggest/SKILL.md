@@ -114,11 +114,6 @@ Can return as:
 - ✅ Maintain full change traceability
 - ✅ No AI traces in commit messages
 
-## Integration Points
-
-### Works With
-- `go-reorganize-refactor` — For validating refactored code before committing
-
 ## Post-Commit Recommendations
 
 After committing, suggest:
@@ -180,13 +175,3 @@ Result: refactor(engine): reorganize processor logic
 
 ---
 
-## Related Shared Agents/Skills
-
-- **go-reorganize-refactor** — For cleaning up code before committing
-
-## Changelog
-
-- **v1.0** (2025-03-11) — Initial shared version
-  - Works in interactive and agent/automation modes
-  - Conventional Commits validation
-  - Full analysis and suggestion pipeline

@@ -20,7 +20,7 @@ This skill explains a pragmatic Python project structure where source files live
 - Source files live directly at the project root — sub-packages only when a true module is needed
 - The main entry point can be named anything (`main.py`, `fetcher.py`, `cli.py`, etc.) — use a domain-specific name, not necessarily `main.py`
 - Scripts at the project root use `.venv` (same directory) for the self-relaunching shebag
-- Python version: **3.12.3**
+- Python version: **3.12**
 
 ---
 

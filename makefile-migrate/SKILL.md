@@ -303,3 +303,5 @@ Place the variables block after `.PHONY` and before the first target. Use `:=` (
 - `makefile-create` — the target state this skill migrates toward
 - `go-project-create` — covers the `make/` scripts that Makefile targets delegate to
 - `python-project-create` — covers `setup` target and `.venv` conventions
+- `go-project-migrate` — invokes this skill as part of its Chaining sequence
+- `python-project-migrate` — invokes this skill as part of its Chaining sequence
