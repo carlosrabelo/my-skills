@@ -54,9 +54,9 @@ As skills cobrem estrutura de projetos Go e Python, workflows Git, documentaçã
 
 | Skill | Modo | Descrição |
 |-------|------|-----------|
-| `readme-create` | agent | Cria README.md do zero com ordem de seções padrão, formato Highlights, requisito bilíngue, bloco Project Layout |
-| `readme-migrate` | manual | Migra um README existente para a estrutura padrão |
-| `readme-bilingual-sync` | agent | Mantém `README.md` (inglês) e `README-PT.md` (português) sincronizados e atualizados |
+| `readme-create` | agent | Cria README.md do zero com ordem de seções padrão, formato Highlights e bloco Project Layout |
+| `readme-migrate` | manual | Migra um README.md existente para a estrutura padrão |
+| `readme-bilingual` | agent | Cria ou sincroniza `README-PT.md` a partir de `README.md` |
 
 ### Projeto
 
@@ -153,7 +153,7 @@ my-skills/
 │   └── SKILL.md
 ├── python-project-create/
 │   └── SKILL.md
-├── readme-bilingual-sync/
+├── readme-bilingual/
 │   └── SKILL.md
 ├── readme-create/
 │   └── SKILL.md

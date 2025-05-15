@@ -1,6 +1,6 @@
 ---
 name: readme-create
-description: Reference for creating README files from scratch. Covers section order, Highlights format, bilingual requirement (README.md + README-PT.md), badge placement, Project Layout block, Development/make-targets section, and what to include or omit per project type.
+description: Reference for creating README.md files from scratch. Covers section order, Highlights format, badge placement, Project Layout block, Development/make-targets section, and what to include or omit per project type. For the Portuguese translation, use readme-bilingual.
 mode: agent
 category: documentation
 shared: true
@@ -16,20 +16,7 @@ The README is the project's front door. It must work for a first-time visitor wh
 
 **Key principle**: Include a section only if it adds value. A shorter README with the right information is better than a padded one with filler sections.
 
-Use this skill when creating README files for the first time. To update existing README files that deviate from the standard, use `readme-migrate`.
-
----
-
-## Bilingual Requirement
-
-Every project has two README files:
-
-- `README.md` — English (source of truth)
-- `README-PT.md` — Portuguese (complete translation)
-
-Both files must have identical section structure and identical section order. Only the prose, section headers, and inline comments in code blocks are translated — never the code itself, command names, or file paths.
-
-See `readme-bilingual-sync` for the sync workflow, translation quality rules, and how to commit both files together.
+Use this skill when creating README files for the first time. To update existing README files that deviate from the standard, use `readme-migrate`. To create or sync the Portuguese translation, use `readme-bilingual`.
 
 ---
 
@@ -342,25 +329,6 @@ This project is licensed under the MIT License — see [LICENSE](LICENSE) for de
 
 ---
 
-## Section Name Translation Reference
-
-| English | Portuguese |
-|---|---|
-| Highlights | Destaques |
-| Table of Contents | Sumário |
-| Overview | Visão Geral |
-| Prerequisites | Pré-requisitos |
-| Installation | Instalação |
-| Quick Start | Início Rápido |
-| Usage | Uso |
-| Configuration | Configuração |
-| Project Layout | Estrutura do Projeto |
-| Development | Desenvolvimento |
-| Contributing | Contribuição |
-| License | Licença |
-
----
-
 ## Minimal Complete Example
 
 Full README.md for a simple Go CLI tool — start here and add sections as needed:
@@ -440,15 +408,10 @@ This project is licensed under the MIT License — see [LICENSE](LICENSE) for de
 
 ---
 
-## Chaining
-
-After creating `README.md`, **always** invoke the `readme-bilingual-sync` skill to create `README-PT.md` as a full translation.
-
----
-
 ## Related Skills
 
-- `readme-bilingual-sync` — sync workflow: keeping both files in sync, translation rules, committing together
+- `readme-bilingual` — create or update the Portuguese translation after writing README.md
+- `readme-migrate` — bring an existing README.md up to this standard
 - `makefile-create` — the make targets shown in the Development section
 - `go-project-create` — the directory layout that Project Layout should reflect for Go projects
 - `python-project-create` — same, for Python projects
