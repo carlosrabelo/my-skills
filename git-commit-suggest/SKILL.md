@@ -175,3 +175,7 @@ Result: refactor(engine): reorganize processor logic
 
 ---
 
+## Related Skills
+
+- **sync-skills** — Run after changes to propagate corrected skills to all destinations.
+

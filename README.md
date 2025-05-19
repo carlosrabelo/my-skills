@@ -28,6 +28,8 @@ Skills cover Go and Python project structure, Git workflows, code documentation,
 |-------|------|-------------|
 | `git-commit-suggest` | manual | Analyze repository changes and suggest `git add` + `git commit` commands using Conventional Commits formatting |
 | `github-repo-editor` | manual | Generate `gh repo edit` commands with auto-derived description and topics for a repository |
+| `gitignore-create` | agent | Create `.gitignore` from scratch with standard section priority: AI tools, secrets, project-type (Go/Python/Node), editors, OS |
+| `gitignore-migrate` | manual | Migrate an existing `.gitignore` to the standard structure, adding missing AI Tools and Secrets sections |
 
 ### Go
 
@@ -136,6 +138,10 @@ my-skills/
 ├── git-commit-suggest/
 │   └── SKILL.md
 ├── github-repo-editor/
+│   └── SKILL.md
+├── gitignore-create/
+│   └── SKILL.md
+├── gitignore-migrate/
 │   └── SKILL.md
 ├── go-project-migrate/
 │   └── SKILL.md

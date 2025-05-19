@@ -551,13 +551,15 @@ After completing all steps above:
 
 1. **Check the Makefile** — if it exists but does not follow the `makefile-create` standard, invoke the `makefile-migrate` skill
 2. **Check the READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-migrate` skill
-3. **Commit the changes** — invoke the `git-commit-suggest` skill to stage and commit the reorganization
+3. **Check the `.gitignore`** — if it is missing the AI Tools section or deviates from the standard, invoke the `gitignore-migrate` skill
+4. **Commit the changes** — invoke the `git-commit-suggest` skill to stage and commit the reorganization
 
 ---
 
 ## Related Skills
 
 - **python-project-create** — The target structure this skill reorganizes toward
+- **gitignore-migrate** — For bringing the `.gitignore` up to the standard after reorganization
 - **readme-bilingual** — Update docs after significant structural changes
 - **monorepo-project-create** — For organizing the git root when Python is one component among many
 - **monorepo-project-migrate** — For migrating the repo itself into a monorepo layout
