@@ -1,12 +1,4 @@
----
-name: monorepo-project-create
-description: Guide to organizing multi-language monorepos with component-level roots (go.mod / pyproject.toml per component), root orchestrator Makefile, and consistent naming conventions for Go and Python components.
-mode: agent
-category: project
-shared: true
----
-
-# Monorepo Project Structure
+# Monorepo Structure Guide
 
 ## Overview
 
@@ -45,18 +37,28 @@ The root Makefile primarily delegates to components. It may also contain global-
 
 ```makefile
 MAKEFLAGS += --no-print-directory
-.PHONY: build test lint
 
-build:
-	go-component/make/build.sh
-	python-component/make/setup.sh
+.DEFAULT_GOAL := help
 
-test:
-	go-component/make/test.sh
-	python-component/make/test.sh
+.PHONY: build help test
+
+help: ## Show available targets
+	@echo "monorepo - Available targets"
+	@echo ""
+	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) \
+		| sort \
+		| awk 'BEGIN {FS = ":.*## "} {printf "  %-15s %s\n", $$1, $$2}'
+
+build: ## Build all components
+	@go-component/make/build.sh
+	@python-component/make/setup.sh
+
+test: ## Test all components
+	@go-component/make/test.sh
+	@python-component/make/test.sh
 ```
 
-Having two Makefiles (root + component) is **not** Anti-Pattern (Two Makefiles) in a multi-language monorepo — they serve different purposes. The anti-pattern is two Makefiles for the same language/component.
+Having two Makefiles (root + component) is **not** the Anti-Pattern (Two Makefiles) in a multi-language monorepo — they serve different purposes. The anti-pattern is two Makefiles for the same language/component.
 
 ---
 
@@ -93,8 +95,8 @@ Each component:
 
 ## Per-Language Components
 
-- **Go components**: see `go-project-create` — `go.mod` lives at `<component>/`, `bin/` and `make/` are siblings
-- **Python components**: see `python-project-create` — `pyproject.toml` and `.venv` live at `<component>/`, self-relaunching shebag works unchanged
+- **Go components**: see `go-skeleton` — `go.mod` lives at `<component>/`, `bin/` and `make/` are siblings
+- **Python components**: see `python-skeleton` — `pyproject.toml` and `.venv` live at `<component>/`, self-relaunching shebag works unchanged
 
 ---
 
@@ -121,14 +123,3 @@ Each component:
 - Projects are completely independent with different teams
 - Release cycles are entirely decoupled
 - Sharing code between them is rare or via published packages
-
----
-
-## Related Skills
-
-- **go-project-create** — Internal structure of Go components
-- **python-project-create** — Internal structure of Python components
-- **monorepo-project-migrate** — Migrate an existing repo or single-component project to this layout
-- **go-project-migrate** — Migrate an existing Go project to the standard layout
-- **python-project-migrate** — Migrate an existing Python project to the standard layout
-- **makefile-migrate** — Bring the root orchestrator Makefile up to the standard structure

@@ -1,11 +1,3 @@
----
-name: readme-bilingual
-description: Create or synchronize README-PT.md from README.md. Handles first-time translation and keeping both files in sync when README.md changes. Translation rules, section heading reference, and what to and not to translate.
-mode: agent
-category: documentation
-shared: true
----
-
 # Bilingual README
 
 Translate `README.md` into `README-PT.md` and keep both files in sync.
@@ -14,7 +6,7 @@ Translate `README.md` into `README-PT.md` and keep both files in sync.
 
 `README.md` is the English source of truth. `README-PT.md` is a complete Portuguese translation. Both files must have identical section structure and identical section order at all times.
 
-Use this skill when:
+Use when:
 - Creating `README-PT.md` for the first time
 - `README.md` was updated and `README-PT.md` needs to catch up
 - The two files have drifted and need to be reconciled
@@ -103,11 +95,3 @@ Use this skill when:
 - Never commit one file without the other — always `git add README.md README-PT.md` together
 - The English file is always the source of truth — if in doubt, follow the English
 - Section order must be identical in both files — the `diff` check is the gate
-
----
-
-## Related Skills
-
-- `readme-create` — standard for writing README.md from scratch
-- `readme-migrate` — bring an existing README.md up to the standard before translating
-- `github-repo-editor` — update GitHub repository description and topics after both READMEs are ready

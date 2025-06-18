@@ -28,42 +28,37 @@ As skills cobrem estrutura de projetos Go e Python, workflows Git, documentaçã
 |-------|------|-----------|
 | `git-commit-suggest` | manual | Analisa as mudanças no repositório e sugere comandos `git add` + `git commit` no formato Conventional Commits |
 | `github-repo-editor` | manual | Gera comandos `gh repo edit` com descrição e tópicos derivados automaticamente para um repositório |
+| `gitignore-skeleton` | agent | Estrutura padrão de `.gitignore`: ferramentas de IA, segredos, tipo de projeto (Go/Python/Node), editores, SO. Cria do zero ou atualiza arquivos existentes. |
 
 ### Go
 
 | Skill | Modo | Descrição |
 |-------|------|-----------|
-| `go-project-create` | agent | Layout padrão de projetos Go: flat root com `go.mod`, Makefile único, `cmd/`, `internal/`, scripts `make/` |
-| `go-project-migrate` | manual | Migra um projeto Go existente para a estrutura flat root padrão (go.mod na raiz, cmd/, internal/, Makefile único) |
+| `go-skeleton` | agent | Layout padrão de projetos Go: flat root com `go.mod`, Makefile único, `cmd/`, `internal/`, scripts `make/`. Cria do zero ou reorganiza projetos existentes. |
 
 ### Python
 
 | Skill | Modo | Descrição |
 |-------|------|-----------|
-| `python-project-create` | agent | Layout padrão de projetos Python: flat root, `pyproject.toml`, `.venv`, Makefile único, scripts `make/` |
-| `python-project-migrate` | manual | Migra um projeto Python existente para o layout flat root padrão (arquivos-fonte na raiz, sub-pacotes somente quando justificado, tests/) |
+| `python-skeleton` | agent | Layout padrão de projetos Python: flat root, `pyproject.toml`, `.venv`, Makefile único, scripts `make/`. Cria do zero ou reorganiza projetos existentes. |
 
 ### Tooling
 
 | Skill | Modo | Descrição |
 |-------|------|-----------|
-| `makefile-create` | agent | Cria um Makefile do zero com estrutura padrão: linhas de abertura, ajuda autodocumentada, targets padrão, padrão delegate-to-make/ |
-| `makefile-migrate` | manual | Migra um Makefile existente para a estrutura padrão |
+| `makefile-skeleton` | agent | Estrutura padrão de Makefile: linhas de abertura, ajuda autodocumentada, targets padrão, padrão delegate-to-make/. Cria do zero ou atualiza arquivos existentes. |
 
 ### Documentação
 
 | Skill | Modo | Descrição |
 |-------|------|-----------|
-| `readme-create` | agent | Cria README.md do zero com ordem de seções padrão, formato Highlights e bloco Project Layout |
-| `readme-migrate` | manual | Migra um README.md existente para a estrutura padrão |
-| `readme-bilingual` | agent | Cria ou sincroniza `README-PT.md` a partir de `README.md` |
+| `readme-skeleton` | agent | Estrutura padrão de README e sincronização bilíngue: ordem de seções, formato Highlights, seção Development, tradução README-PT.md. Cria do zero ou atualiza arquivos existentes. |
 
 ### Projeto
 
 | Skill | Modo | Descrição |
 |-------|------|-----------|
-| `monorepo-project-create` | agent | Guia para organizar monorepos multi-linguagem com raízes por componente, Makefile orquestrador na raiz e convenções de nomes consistentes |
-| `monorepo-project-migrate` | manual | Reorganiza repositórios existentes no layout padrão de monorepo |
+| `monorepo-skeleton` | agent | Layout padrão de monorepo multi-linguagem: raízes por componente, Makefile orquestrador na raiz, convenções de nomes consistentes. Cria do zero ou reorganiza repositórios existentes. |
 
 ### Meta
 
@@ -119,7 +114,7 @@ Em qualquer sessão do Claude Code, digite o nome da skill como um comando slash
 
 ### Skills de agente
 
-As skills de agente são ativadas automaticamente quando o Claude detecta contexto relevante — por exemplo, `go-project-create` é ativada quando você está trabalhando em um projeto Go e pergunta sobre organização.
+As skills de agente são ativadas automaticamente quando o Claude detecta contexto relevante — por exemplo, `go-skeleton` é ativada quando você está trabalhando em um projeto Go e pergunta sobre organização.
 
 ### Atualizando skills
 
@@ -137,33 +132,29 @@ my-skills/
 │   └── SKILL.md
 ├── github-repo-editor/
 │   └── SKILL.md
-├── go-project-migrate/
-│   └── SKILL.md
-├── go-project-create/
-│   └── SKILL.md
-├── makefile-create/
-│   └── SKILL.md
-├── makefile-migrate/
-│   └── SKILL.md
-├── monorepo-project-create/
-│   └── SKILL.md
-├── monorepo-project-migrate/
-│   └── SKILL.md
-├── python-project-migrate/
-│   └── SKILL.md
-├── python-project-create/
-│   └── SKILL.md
-├── readme-bilingual/
-│   └── SKILL.md
-├── readme-create/
-│   └── SKILL.md
-├── readme-migrate/
-│   └── SKILL.md
+├── gitignore-skeleton/
+│   ├── SKILL.md
+│   └── references/
+├── go-skeleton/
+│   ├── SKILL.md
+│   └── references/
+├── makefile-skeleton/
+│   ├── SKILL.md
+│   └── references/
+├── monorepo-skeleton/
+│   ├── SKILL.md
+│   └── references/
+├── python-skeleton/
+│   ├── SKILL.md
+│   └── references/
+├── readme-skeleton/
+│   ├── SKILL.md
+│   └── references/
 ├── README.md
 └── README-PT.md
 ```
 
-Cada skill vive em seu próprio diretório contendo um único arquivo `SKILL.md` com a definição completa da skill, instruções e exemplos.
+Cada skill vive em seu próprio diretório. Skills com subdiretório `references/` dividem seu conteúdo em múltiplos arquivos — `SKILL.md` é o ponto de entrada carregado automaticamente, enquanto os arquivos em `references/` são carregados sob demanda.
 
 ## Adicionando Novas Skills
 

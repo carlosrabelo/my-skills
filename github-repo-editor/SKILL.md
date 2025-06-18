@@ -231,7 +231,7 @@ gh repo view --web  # Opens on GitHub
 
 ## Related Skills
 
-- **readme-bilingual** — For creating comprehensive project documentation
+- **readme-skeleton** — For creating comprehensive project documentation (README.md + README-PT.md)
 - **git-commit-suggest** — For committing changes after updating repository metadata
-- **go-project-create** — For documenting project structure
+- **go-skeleton** — For documenting project structure
 

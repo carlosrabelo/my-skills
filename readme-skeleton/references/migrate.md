@@ -1,18 +1,10 @@
----
-name: readme-migrate
-description: Bring an existing README.md up to the standard structure. Covers reordering sections, converting Features to Highlights, adding missing Development section, and fixing Project Layout (removing src/). For the Portuguese translation, use readme-bilingual.
-mode: manual
-category: documentation
-shared: true
----
-
 # README Migration
 
-Step-by-step guide for bringing existing README files up to the standard defined in `readme-create`.
+Step-by-step guide for bringing existing README files up to the standard defined in `references/create.md`.
 
 ## Overview
 
-Use this skill when a project has an existing README.md that deviates from the standard — wrong section order, misnamed sections, missing `## Development`, or `src/` in the layout. For the Portuguese translation, use `readme-bilingual`.
+Use this when a project has an existing README.md that deviates from the standard — wrong section order, misnamed sections, missing `## Development`, or `src/` in the layout. After updating README.md, apply the same changes to README-PT.md using the rules in `references/bilingual.md`.
 
 **Target state**: `README.md` with:
 - Identical section structure in the canonical order
@@ -26,7 +18,7 @@ Use this skill when a project has an existing README.md that deviates from the s
 ## Before You Start
 
 1. List all current sections: `grep "^## " README.md`
-2. Compare against the standard order from `readme-create`.
+2. Compare against the standard order from `references/create.md`.
 3. Note which scenarios apply before making any changes — several scenarios are often needed together.
 
 ---
@@ -171,16 +163,3 @@ Steps:
 - [ ] `## Highlights` present with plain bullets (Scenario 2 check)
 - [ ] `## Development` present with make targets (Scenario 3 check)
 - [ ] `## Project Layout` used (not `## Project Structure`), no `src/` entries (Scenario 4 check)
-
----
-
----
-
-## Related Skills
-
-- `readme-create` — the target state this skill migrates toward
-- `readme-bilingual` — create or update the Portuguese translation after migrating README.md
-- `go-project-create` — the directory layout that Project Layout should reflect for Go projects
-- `python-project-create` — same, for Python projects
-- `go-project-migrate` — invokes this skill as part of its Chaining sequence
-- `python-project-migrate` — invokes this skill as part of its Chaining sequence

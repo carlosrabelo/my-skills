@@ -1,14 +1,6 @@
----
-name: monorepo-project-migrate
-description: Reorganize existing repos into the standard monorepo layout — component-level roots, root orchestrator Makefile, proper naming. Handles conversion of single-language repos and merging of separate repos. Invoke manually with /monorepo-project-migrate.
-mode: manual
-category: project
-shared: true
----
+# Monorepo Migration
 
-# Monorepo Project Migrate
-
-Reorganize an existing repository into the standard monorepo structure defined in `monorepo-project-create`. Invoke manually with `/monorepo-project-migrate` when a repo needs structural alignment.
+Step-by-step guide for reorganizing an existing repository into the standard monorepo structure defined in `references/create.md`.
 
 ## Overview
 
@@ -43,7 +35,7 @@ monorepo/
 - ✅ All changes committed (`git status` clean)
 - ✅ All tests passing
 - ✅ Understand what each component does
-- ✅ Decide on component names (see Component Naming in `monorepo-project-create`)
+- ✅ Decide on component names (see Component Naming in `references/create.md`)
 
 ### Diagnose the Repo
 
@@ -384,16 +376,8 @@ make build && make test
 
 After completing all steps above:
 
-1. **For each Go component** — invoke the `go-project-migrate` skill to verify and fix the internal structure
-2. **For each Python component** — invoke the `python-project-migrate` skill to verify and fix the internal structure
-3. **Check the root Makefile** — if it does not follow the `makefile-create` standard, invoke the `makefile-migrate` skill
-4. **Check the root READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-migrate` skill
+1. **For each Go component** — invoke the `go-skeleton` skill to verify and fix the internal structure
+2. **For each Python component** — invoke the `python-skeleton` skill to verify and fix the internal structure
+3. **Check the root Makefile** — if it does not follow the `makefile-skeleton` standard, invoke the `makefile-skeleton` skill
+4. **Check the root READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-skeleton` skill
 5. **Commit the changes** — invoke the `git-commit-suggest` skill to stage and commit the reorganization
-
----
-
-## Related Skills
-
-- **monorepo-project-create** — The target structure this skill reorganizes toward
-- **go-project-migrate** — Migrate the internal structure of a Go component
-- **python-project-migrate** — Migrate the internal structure of a Python component

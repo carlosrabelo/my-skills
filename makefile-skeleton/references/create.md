@@ -1,11 +1,3 @@
----
-name: makefile-create
-description: Reference for creating a Makefile from scratch for Go and Python projects. Covers mandatory opening lines, self-documenting help via grep/awk, variables, standard targets, delegate-to-make/ pattern, and monorepo orchestration.
-mode: agent
-category: tooling
-shared: true
----
-
 # Makefile Guide
 
 Standard structure and patterns for writing Makefiles in Go and Python projects.
@@ -15,8 +7,6 @@ Standard structure and patterns for writing Makefiles in Go and Python projects.
 The Makefile is the single developer interface for a project — you always type `make <something>`, never a raw tool command directly. It should be short, self-documenting, and delegate complex logic to `make/` scripts.
 
 **Key principle**: The Makefile orchestrates; `make/` scripts do the work. If a target needs more than two or three shell lines, extract it to a script.
-
-Use this skill when creating a Makefile for the first time. To update an existing Makefile that deviates from the standard, use `makefile-migrate`.
 
 ---
 
@@ -176,7 +166,7 @@ typecheck: ## Type-check with mypy
 quality: fmt lint typecheck ## Run all quality checks
 ```
 
-`setup` is the first target a new contributor runs. It must create `.venv` and install all dependencies so the project is ready to use. See `python-project-create` for the `make/setup.sh` contents.
+`setup` is the first target a new contributor runs. It must create `.venv` and install all dependencies so the project is ready to use. See `python-skeleton` for the `make/setup.sh` contents.
 
 ---
 
@@ -403,12 +393,3 @@ clean: ## Remove build artifacts and caches
 - Delegate complex logic to `make/` scripts; keep the Makefile short
 - Declare all non-file targets in a single `.PHONY` line at the top
 - Use `quality: fmt vet lint` (Go) or `quality: fmt lint typecheck` (Python) as a commit-readiness shortcut
-
----
-
-## Related Skills
-
-- `go-project-create` — covers the `make/` scripts that Makefile targets delegate to
-- `python-project-create` — covers the `setup` target, `.venv` conventions, and `make/setup.sh`
-- `monorepo-project-create` — root orchestrator Makefile pattern for multi-component repos
-- `makefile-migrate` — step-by-step guide for bringing an existing Makefile up to this standard

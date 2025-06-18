@@ -1,11 +1,3 @@
----
-name: gitignore-create
-description: Reference for creating .gitignore files from scratch. Covers mandatory section order by priority, AI tools blocking (Claude, Gemini, OpenCode, Antigravity), secrets, and project-type sections for Go, Python, and Node.
-mode: agent
-category: git
-shared: true
----
-
 # .gitignore Guide
 
 Standard content and structure for `.gitignore` files.
@@ -15,8 +7,6 @@ Standard content and structure for `.gitignore` files.
 Every project needs a `.gitignore`. The order of sections reflects priority — the most critical entries come first so they are never accidentally removed or overlooked during edits.
 
 **Key principle**: The AI Tools section is always present and always first, regardless of project type. AI config files, credentials, and local state must never be committed.
-
-Use this skill when creating `.gitignore` for the first time. To update an existing `.gitignore` that deviates from the standard, use `gitignore-migrate`.
 
 ---
 
@@ -100,7 +90,7 @@ coverage.out
 coverage.html
 ```
 
-Also add the project binary name without path to catch misplaced `go build` calls (see anti-pattern in `go-project-create`):
+Also add the project binary name without path to catch misplaced `go build` calls (see anti-pattern in `go-skeleton`):
 
 ```gitignore
 # Go
@@ -279,11 +269,3 @@ Thumbs.db
 ❌ **Ignoring `node_modules/` in a Go project** — only include the section that matches the project type.
 
 ❌ **Using `*` globs broadly** — prefer explicit entries over `*` wildcards that may accidentally block legitimate files.
-
----
-
-## Related Skills
-
-- `gitignore-migrate` — bring an existing `.gitignore` up to this standard
-- `go-project-create` — Go project layout that informs the Go section entries
-- `python-project-create` — Python project layout that informs the Python section entries

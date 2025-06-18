@@ -1,42 +1,6 @@
----
-name: go-project-migrate
-description: Reorganize existing Go projects to match the standard flat root structure (go.mod at root, cmd/, internal/, single Makefile, make/ scripts). Handles migration from src/ layout, monolithic code, and missing structure.
-mode: manual
-category: go
-shared: true
----
+# Go Project — Migrating Existing Code
 
-# Go Project Migrate
-
-Reorganize existing Go projects to match the standard structure defined in `go-project-create`. Invoke manually with `/go-project-migrate` when a project needs structural alignment.
-
-## Overview
-
-This skill transforms messy or legacy Go projects into the standard layout:
-
-```
-project/
-├── Makefile          ← Single Makefile
-├── go.mod            ← At project root (NEVER in src/)
-├── go.sum
-├── bin/              ← Compiled binaries (.gitignore)
-├── make/              ← Automation scripts
-│   ├── build.sh
-│   ├── test.sh
-│   ├── install.sh
-│   └── uninstall.sh
-├── cmd/              ← Executable entry points
-│   └── project-name/
-│       └── main.go
-├── internal/         ← Internal packages
-│   └── package/
-│       ├── types.go
-│       ├── logic.go
-│       └── logic_test.go
-└── testdata/         ← Test fixtures
-```
-
----
+Instructions for reorganizing an existing Go project to match the standard layout defined in `layout.md`. Never mix reorganization with logic changes — reorganize first, then modify behavior in a separate commit.
 
 ## Before You Start
 
@@ -164,7 +128,7 @@ project/
 
 1. **Create directory structure**:
 ```bash
-mkdir -p cmd/project-name internal/core bin run
+mkdir -p cmd/project-name internal/core bin
 ```
 
 2. **Move entry point to cmd/**:
@@ -192,7 +156,7 @@ func main() {
 }
 ```
 
-5. **Add make/ scripts and Makefile** (see go-project-create)
+5. **Add make/ scripts and Makefile** (see layout.md)
 
 6. **Delete old files from root**:
 ```bash
@@ -273,14 +237,14 @@ cd "$ROOT_DIR"
 go test -v ./...
 ```
 
-3. **Create make/install.sh and make/uninstall.sh** (see go-project-create)
+3. **Create make/install.sh and make/uninstall.sh** (see layout.md)
 
 4. **Make executable**:
 ```bash
 chmod +x make/*.sh
 ```
 
-5. **Create/replace Makefile** at project root:
+5. **Create/replace Makefile** at project root (see layout.md for full template):
 ```makefile
 MAKEFLAGS += --no-print-directory
 .PHONY: build test lint fmt clean install uninstall
@@ -415,16 +379,12 @@ rm -rf internal/utils/
 
 ## Monorepo Usage
 
-This skill applies to whichever directory contains `go.mod` — that is the Go project root, regardless of where the git root is.
-
 When migrating a Go component inside a monorepo:
 
-- Treat `<component>/` as the project root throughout all scenarios. `go.mod`, `Makefile`, `make/`, `cmd/`, and `internal/` all live there.
-- `make/` scripts compute `ROOT_DIR` as `$(dirname "$0")/..`, resolving to `<component>/` — not the git root.
-- The git root has a separate orchestrator Makefile — this is **not** a violation of the single-Makefile rule.
-- When updating `.gitignore`, paths are relative to `<component>/`, not the git root.
-
-See **monorepo-project-create** for the full monorepo layout and root Makefile patterns.
+- Treat `<component>/` as the project root throughout all scenarios
+- `make/` scripts compute `ROOT_DIR` as `$(dirname "$0")/..`, resolving to `<component>/` — not the git root
+- The git root has a separate orchestrator Makefile — this is **not** a violation of the single-Makefile rule
+- When updating `.gitignore`, paths are relative to `<component>/`, not the git root
 
 ---
 
@@ -432,16 +392,7 @@ See **monorepo-project-create** for the full monorepo layout and root Makefile p
 
 After completing all steps above:
 
-1. **Check the Makefile** — if it exists but does not follow the `makefile-create` standard, invoke the `makefile-migrate` skill
-2. **Check the READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-migrate` skill
-3. **Check the `.gitignore`** — if it is missing the AI Tools section or deviates from the standard, invoke the `gitignore-migrate` skill
+1. **Check the Makefile** — if it exists but does not follow the `makefile-skeleton` standard, invoke the `makefile-skeleton` skill
+2. **Check the READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-skeleton` skill
+3. **Check the `.gitignore`** — if it is missing the AI Tools section or deviates from the standard, invoke the `gitignore-skeleton` skill
 4. **Commit the changes** — invoke the `git-commit-suggest` skill to stage and commit the reorganization
-
----
-
-## Related Skills
-
-- **go-project-create** — The target structure this skill reorganizes toward
-- **gitignore-migrate** — For bringing the `.gitignore` up to the standard after reorganization
-- **monorepo-project-create** — For organizing the git root when Go is one component among many
-- **monorepo-project-migrate** — For migrating the repo itself into a monorepo layout

@@ -1,35 +1,6 @@
----
-name: python-project-migrate
-description: Reorganize existing Python projects to match the standard flat root layout (source files at root, sub-packages only when justified, tests/). Handles migration from src/ layout, monolithic code, and missing structure. Invoke manually with /python-project-migrate.
-mode: manual
-category: python
-shared: true
----
+# Python Project — Migrating Existing Code
 
-# Python Project Migrate
-
-Reorganize existing Python projects to match the standard structure defined in `python-project-create`. Invoke manually with `/python-project-migrate` when a project needs structural alignment.
-
-## Overview
-
-This skill transforms messy or legacy Python projects into the standard layout:
-
-```
-project-name/
-├── Makefile
-├── pyproject.toml
-├── main.py           ← Entry point with shebag (≤50 lines)
-├── processor.py      ← Domain-specific modules at root
-├── errors.py         ← Custom exception types
-├── make/              ← Automation scripts
-│   ├── install.sh
-│   └── uninstall.sh
-└── tests/
-    ├── conftest.py
-    └── test_processor.py
-```
-
----
+Instructions for reorganizing an existing Python project to match the standard layout defined in `layout.md`. Never mix reorganization with logic changes — reorganize first, then modify behavior in a separate commit.
 
 ## Before You Start
 
@@ -159,11 +130,7 @@ make typecheck
 
 **Steps**:
 
-1. **Identify concerns** in main.py:
-   - CLI/argument parsing
-   - Business/processing logic
-   - Error types
-   - Output formatting
+1. **Identify concerns** in main.py: CLI/argument parsing, business/processing logic, error types, output formatting
 
 2. **Create domain-specific modules**:
 ```bash
@@ -426,48 +393,9 @@ def fixtures_dir() -> Path:
 
 **Steps**:
 
-1. **Create `pyproject.toml`** at the project root with dependencies from `requirements.txt`:
-```toml
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+1. **Create `pyproject.toml`** at the project root with dependencies from `requirements.txt` (see layout.md for full template)
 
-[project]
-name = "project-name"
-version = "0.1.0"
-description = "Short description"
-requires-python = ">=3.12"
-dependencies = [
-    # Copy runtime deps from requirements.txt
-    "requests>=2.31",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.0",
-    "pytest-cov>=5.0",
-    "ruff>=0.4",
-    "mypy>=1.10",
-]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["."]
-addopts = "-v --tb=short"
-
-[tool.ruff]
-src = ["."]
-line-length = 88
-
-[tool.ruff.lint]
-select = ["E", "F", "I", "N", "W", "UP"]
-
-[tool.mypy]
-python_version = "3.12"
-strict = true
-```
-
-2. **Update `make/setup.sh`** to install from `pyproject.toml` instead of `requirements.txt`:
+2. **Update `make/setup.sh`** to install from `pyproject.toml`:
 ```bash
 # Old:
 "$ROOT_DIR/.venv/bin/pip" install -r "$ROOT_DIR/requirements.txt"
@@ -476,12 +404,12 @@ strict = true
 "$ROOT_DIR/.venv/bin/pip" install -e "$ROOT_DIR[dev]" --quiet
 ```
 
-3. **Keep `requirements.txt` as a lockfile** (or remove it):
+3. **Handle `requirements.txt`**:
 ```bash
-# Option A: keep as lockfile (pinned versions for reproducible installs)
+# Option A: keep as lockfile
 pip freeze > requirements.txt
 
-# Option B: remove it (pyproject.toml is now the source of truth)
+# Option B: remove it
 rm requirements.txt
 ```
 
@@ -511,7 +439,7 @@ make test
 - [ ] `make test` passes
 - [ ] `make typecheck` passes
 - [ ] `make lint` passes
-- [ ] `main.py` ≤ 50 lines
+- [ ] Entry point ≤ 50 lines
 - [ ] No `src/` directory
 - [ ] No `utils.py` or `helpers.py`
 - [ ] No sub-packages wrapping single files
@@ -525,23 +453,19 @@ make test
 - **Move one file at a time** — move, update imports, verify tests, repeat
 - **No generic module names** — `utils.py`, `helpers.py`, `common.py` must be renamed to domain-specific names
 - **No sub-packages for single files** — flatten to a root-level module instead
-- **main.py must be thin** — ≤50 lines, CLI parsing + delegation only
+- **Entry point must be thin** — ≤50 lines, CLI parsing + delegation only
 - **No `src/` directory** — source files belong at project root
 
 ---
 
 ## Monorepo Usage
 
-This skill applies to whichever directory contains `pyproject.toml` — that is the Python project root.
-
 When migrating a Python component inside a monorepo:
 
-- Treat `<component>/` as the project root throughout all scenarios. `pyproject.toml`, `.venv`, `Makefile`, `make/`, and all source files live there.
-- The self-relaunching shebag works unchanged: `Path(__file__).resolve().parent` resolves to `<component>/` — no path adjustments needed.
-- `make/setup.sh` computes `ROOT_DIR` as `$(dirname "$0")/..`, resolving to `<component>/`. `.venv` is created there, isolated from the git root.
-- Sub-packages inside `<component>/` are legitimate domain packages — not Anti-Pattern 2.
-
-See **monorepo-project-create** for the full monorepo layout and root Makefile patterns.
+- Treat `<component>/` as the project root throughout all scenarios
+- The self-relaunching shebag works unchanged: `Path(__file__).resolve().parent` resolves to `<component>/`
+- `make/setup.sh` computes `ROOT_DIR` as `$(dirname "$0")/..`, resolving to `<component>/`
+- Sub-packages inside `<component>/` are legitimate domain packages — not Anti-Pattern 2
 
 ---
 
@@ -549,17 +473,7 @@ See **monorepo-project-create** for the full monorepo layout and root Makefile p
 
 After completing all steps above:
 
-1. **Check the Makefile** — if it exists but does not follow the `makefile-create` standard, invoke the `makefile-migrate` skill
-2. **Check the READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-migrate` skill
-3. **Check the `.gitignore`** — if it is missing the AI Tools section or deviates from the standard, invoke the `gitignore-migrate` skill
+1. **Check the Makefile** — if it exists but does not follow the `makefile-skeleton` standard, invoke the `makefile-skeleton` skill
+2. **Check the READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-skeleton` skill
+3. **Check the `.gitignore`** — if it is missing the AI Tools section or deviates from the standard, invoke the `gitignore-skeleton` skill
 4. **Commit the changes** — invoke the `git-commit-suggest` skill to stage and commit the reorganization
-
----
-
-## Related Skills
-
-- **python-project-create** — The target structure this skill reorganizes toward
-- **gitignore-migrate** — For bringing the `.gitignore` up to the standard after reorganization
-- **readme-bilingual** — Update docs after significant structural changes
-- **monorepo-project-create** — For organizing the git root when Python is one component among many
-- **monorepo-project-migrate** — For migrating the repo itself into a monorepo layout

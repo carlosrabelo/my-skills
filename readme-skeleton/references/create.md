@@ -1,11 +1,3 @@
----
-name: readme-create
-description: Reference for creating README.md files from scratch. Covers section order, Highlights format, badge placement, Project Layout block, Development/make-targets section, and what to include or omit per project type. For the Portuguese translation, use readme-bilingual.
-mode: agent
-category: documentation
-shared: true
----
-
 # README Guide
 
 Standard content and structure for project README files.
@@ -15,8 +7,6 @@ Standard content and structure for project README files.
 The README is the project's front door. It must work for a first-time visitor who wants to install the tool and for a returning contributor who wants to run the tests. Write for the visitor first — installation and usage before internals.
 
 **Key principle**: Include a section only if it adds value. A shorter README with the right information is better than a padded one with filler sections.
-
-Use this skill when creating README files for the first time. To update existing README files that deviate from the standard, use `readme-migrate`. To create or sync the Portuguese translation, use `readme-bilingual`.
 
 ---
 
@@ -405,14 +395,3 @@ This project is licensed under the MIT License — see [LICENSE](LICENSE) for de
 - Plain bullets in Highlights — no trailing periods, no bold labels
 - `## Development` always shows the make targets; never omit it
 - Include a section only when it adds real value — prefer a shorter README
-
----
-
-## Related Skills
-
-- `readme-bilingual` — create or update the Portuguese translation after writing README.md
-- `readme-migrate` — bring an existing README.md up to this standard
-- `makefile-create` — the make targets shown in the Development section
-- `go-project-create` — the directory layout that Project Layout should reflect for Go projects
-- `github-repo-editor` — update GitHub repository description and topics after the README is ready
-- `python-project-create` — same, for Python projects

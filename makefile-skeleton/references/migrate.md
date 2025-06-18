@@ -1,20 +1,12 @@
----
-name: makefile-migrate
-description: Reorganize existing Makefiles to match the standard structure. Covers adding mandatory opening lines, converting printf help to grep/awk, extracting shell logic to make/ scripts, adding .PHONY, and adding missing standard targets.
-mode: manual
-category: tooling
-shared: true
----
-
 # Makefile Migration
 
-Step-by-step guide for bringing an existing Makefile up to the standard defined in `makefile-create`.
+Step-by-step guide for bringing an existing Makefile up to the standard defined in `references/create.md`.
 
 ## Overview
 
-Use this skill when a project has an existing Makefile that deviates from the standard — missing opening lines, a printf-based help target, multi-line shell logic, scattered `.PHONY`, or missing standard targets.
+Use this when a project has an existing Makefile that deviates from the standard — missing opening lines, a printf-based help target, multi-line shell logic, scattered `.PHONY`, or missing standard targets.
 
-**Target state**: a Makefile that fully matches `makefile-create`:
+**Target state**: a Makefile that fully matches `references/create.md`:
 - Opens with `MAKEFLAGS += --no-print-directory` and `.DEFAULT_GOAL := help`
 - Has a single `.PHONY` declaration at the top
 - Uses the grep+awk self-documenting help pattern
@@ -26,7 +18,7 @@ Use this skill when a project has an existing Makefile that deviates from the st
 ## Before You Start
 
 1. Read the current Makefile in full — understand every target before changing anything.
-2. Compare against `makefile-create` — note which standard elements are missing.
+2. Compare against `references/create.md` — note which standard elements are missing.
 3. Check the `make/` directory — if scripts already exist, the delegation pattern may already be partially in place.
 4. Identify targets with multi-line shell logic that should move to `make/` scripts.
 5. Confirm that any targets you rename or add do not break CI workflows or documented commands.
@@ -211,11 +203,6 @@ setup: ## Create .venv and install dependencies
 	@./make/setup.sh
 ```
 
-**`all` convenience target** (optional — runs the most common sequence):
-```makefile
-all: quality test build ## Run quality checks, tests, and build
-```
-
 Add the new target names to `.PHONY` after adding them.
 
 ---
@@ -293,15 +280,3 @@ Place the variables block after `.PHONY` and before the first target. Use `:=` (
 - Always test `make help` after converting the help target — if grep finds nothing, check that `##` comments are on the correct targets
 - Scripts in `make/` must be executable (`chmod +x`) before the Makefile delegates to them
 - Do not add targets that are not needed by the project — migrate to the standard, not beyond it
-
----
-
----
-
-## Related Skills
-
-- `makefile-create` — the target state this skill migrates toward
-- `go-project-create` — covers the `make/` scripts that Makefile targets delegate to
-- `python-project-create` — covers `setup` target and `.venv` conventions
-- `go-project-migrate` — invokes this skill as part of its Chaining sequence
-- `python-project-migrate` — invokes this skill as part of its Chaining sequence

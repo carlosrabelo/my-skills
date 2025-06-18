@@ -29,7 +29,7 @@ Run all six checks on every file. Record findings keyed by the IDs below.
 | RELATED    | File contains a `## Related Skills` section |
 | LANG       | All content (headings and body) is in English — use contextual judgment, not mechanical word-matching |
 
-Additionally, note (informational only, not an error) any `-create` skill missing a matching `-migrate` counterpart, or vice versa.
+Additionally, note (informational only, not an error) any `-create` skill missing a matching `-migrate` counterpart, or vice versa. Skills that use a unified pattern with `references/` subdirectories (e.g., `go-skeleton`, `python-skeleton`, `readme-skeleton`, `makefile-skeleton`, `gitignore-skeleton`, `monorepo-skeleton`) intentionally omit the `-create`/`-migrate` suffix — do not flag these.
 
 ## Auto-Fix Rules
 
@@ -67,11 +67,11 @@ Do **not** auto-fix the following — report only:
 AUDIT REPORT
 ============
 git-commit-suggest      OK
-go-project-create       OK
-go-project-migrate      ISSUES:
-  [RELATED] Missing ## Related Skills section → auto-fixed
-gitignore-create        ISSUES:
+go-skeleton             OK
+gitignore-skeleton      ISSUES:
   [CHANGELOG] ## Changelog section found → auto-fixed
+readme-skeleton         ISSUES:
+  [RELATED] Missing ## Related Skills section → auto-fixed
 
 NOTE (informational): github-repo-editor has no matching github-repo-migrate.
 

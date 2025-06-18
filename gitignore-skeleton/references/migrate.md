@@ -1,18 +1,10 @@
----
-name: gitignore-migrate
-description: Bring an existing .gitignore up to the standard structure. Covers adding the mandatory AI Tools section, inserting missing secrets entries, reordering sections by priority, and adding missing project-type entries for Go, Python, and Node.
-mode: manual
-category: git
-shared: true
----
-
 # .gitignore Migration
 
-Step-by-step guide for bringing an existing `.gitignore` up to the standard defined in `gitignore-create`.
+Step-by-step guide for bringing an existing `.gitignore` up to the standard defined in `references/create.md`.
 
 ## Overview
 
-Use this skill when a project has an existing `.gitignore` that is missing critical sections or has entries out of priority order. Invoke manually with `/gitignore-migrate`.
+Use this when a project has an existing `.gitignore` that is missing critical sections or has entries out of priority order.
 
 **Target state**: `.gitignore` with:
 - AI Tools section always present and always first
@@ -100,7 +92,7 @@ coverage.out
 coverage.html
 ```
 
-Replace `project-name` with the actual binary name. This catches misplaced `go build` calls that land a binary at the project root instead of `bin/` (see `go-project-create`).
+Replace `project-name` with the actual binary name. This catches misplaced `go build` calls that land a binary at the project root instead of `bin/` (see `go-skeleton`).
 
 #### Python — missing or incomplete
 
@@ -209,13 +201,3 @@ Thumbs.db
 - **Preserve all existing entries** — migration adds and reorders; it does not remove entries unless they are duplicates or clearly wrong.
 - **One blank line between sections** — consistent formatting makes the file scannable.
 - **Do not add project-type sections that don't apply** — a Go project does not need `node_modules/`.
-
----
-
-## Related Skills
-
-- `gitignore-create` — the target state this skill migrates toward
-- `go-project-create` — Go project layout that informs the Go section entries
-- `python-project-create` — Python project layout that informs the Python section entries
-- `go-project-migrate` — invokes this skill as part of its reorganization checklist
-- `python-project-migrate` — invokes this skill as part of its reorganization checklist
