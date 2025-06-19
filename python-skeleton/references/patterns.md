@@ -1,59 +1,34 @@
 # Python Project — Patterns
 
-Shebags, testing patterns, error handling, and anti-patterns for Python projects.
+Running the application, testing patterns, error handling, and anti-patterns for Python projects.
 
-## Shebags and .venv
+## Running the Application
 
-Python scripts at the project root meant to be run directly (e.g. `./fetcher.py`) must point to the right interpreter. On Linux, shebags **must be absolute paths** — relative paths like `#!.venv/bin/python` are not supported by the kernel.
+Applications are run with `python -m <module>` using the project's `.venv`:
 
-The solution is the **self-relaunching pattern**: the script starts with the system Python, detects `.venv` in the same directory, and re-executes itself using the `.venv` interpreter if not already running inside it.
+```bash
+# Standard way to run
+.venv/bin/python -m fetcher
+.venv/bin/python -m fetcher --help
 
-### The Self-Relaunching Pattern
+# Or via Makefile
+make run
 
-Scripts live at the project root, so `.venv` is a sibling:
-
-```python
-#!/usr/bin/env python3
-"""Script description."""
-
-# Auto-switch to .venv (same directory as the script)
-import os
-import sys
-from pathlib import Path
-
-_venv_python = Path(__file__).resolve().parent / ".venv" / "bin" / "python"
-
-if _venv_python.exists() and Path(sys.executable).resolve() != _venv_python.resolve():
-    os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
-
-# --- script starts here, guaranteed to be running inside .venv ---
-
-import requests  # safe: .venv deps are available
+# After activating the venv
+source .venv/bin/activate
+python -m fetcher --help
 ```
 
-**How it works**:
-1. System Python runs the script first
-2. `Path(__file__).resolve().parent` resolves to the project root (where the script lives)
-3. If `.venv/bin/python` exists there and is not the current interpreter, `os.execv` replaces the current process — no subprocess, no overhead
-4. The script re-runs from the top, this time already inside `.venv`, so the check is skipped
-
-### Script Template
+The entry point module must have an `if __name__ == "__main__"` block:
 
 ```python
-#!/usr/bin/env python3
-"""One-line description of what this script does."""
+"""Command-line interface for project-name."""
 
-import os
-import sys
-from pathlib import Path
-
-# Auto-switch to .venv
-_venv_python = Path(__file__).resolve().parent / ".venv" / "bin" / "python"
-if _venv_python.exists() and Path(sys.executable).resolve() != _venv_python.resolve():
-    os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
-
-# Imports (safe: running inside .venv)
 import argparse
+import sys
+
+from processor import process
+from errors import ProcessingError, ValidationError
 
 
 def main() -> None:
@@ -61,42 +36,31 @@ def main() -> None:
     parser.add_argument("input", help="Input value")
     args = parser.parse_args()
 
-    print(args.input)
+    try:
+        result = process(args.input)
+        print(result)
+    except ValidationError as e:
+        print(f"Bad input: {e}", file=sys.stderr)
+        sys.exit(1)
+    except ProcessingError as e:
+        print(f"Processing failed: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
     main()
 ```
 
-### Multiple Scripts
+### Installing as a Command
 
-Each script at the project root is self-contained. Copy the relauncher block at the top of every script that needs `.venv` deps:
+Add `[project.scripts]` to `pyproject.toml` to make the tool available as a named command after `pip install`:
 
-```python
-#!/usr/bin/env python3
-"""Another script."""
-
-import os
-import sys
-from pathlib import Path
-
-_venv_python = Path(__file__).resolve().parent / ".venv" / "bin" / "python"
-if _venv_python.exists() and Path(sys.executable).resolve() != _venv_python.resolve():
-    os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
-
-# script-specific code below
-from processor import process  # relative import from project root
+```toml
+[project.scripts]
+project-name = "fetcher:main"   # ← "module:function"
 ```
 
-### Why Not Other Approaches
-
-| Approach | Problem |
-|----------|---------|
-| `#!.venv/bin/python` | Relative shebags not supported on Linux |
-| `#!/usr/bin/env python3` alone | Uses system Python, deps not available |
-| Activate venv manually | Requires user to remember every time |
-| Bash wrapper script | Extra file, more complexity |
-| `#!/absolute/path/.venv/bin/python` | Path changes per machine, not portable |
+After `make setup` (which runs `pip install -e .`), the command is available at `.venv/bin/project-name`. The `make/install.sh` script copies it to `~/.local/bin/`.
 
 ---
 
@@ -109,7 +73,7 @@ Tests live in `tests/`, with one test file per source file:
 ```
 tests/
 ├── conftest.py               ← Shared fixtures
-├── test_main.py
+├── test_fetcher.py
 ├── test_processor.py
 └── models/                   ← Mirror sub-packages if they exist
     └── test_item.py
@@ -326,14 +290,14 @@ validator.py
 reader.py
 ```
 
-### ❌ Anti-Pattern 7: Relative shebag
+### ❌ Anti-Pattern 7: Running with System Python
 
-```python
-# ❌ BAD: not supported by Linux kernel
-#!/.venv/bin/python
-#!.venv/bin/python
+```bash
+# ❌ BAD: uses system Python, .venv deps not available
+python fetcher.py
+python3 fetcher.py
 
-# ✅ GOOD: self-relaunching pattern with .venv
-#!/usr/bin/env python3
-# + the os.execv relauncher block
+# ✅ GOOD: always use .venv's Python
+.venv/bin/python -m fetcher
+make run
 ```

@@ -60,16 +60,7 @@ mv src/*.py .
 rmdir src/
 ```
 
-2. **Update shebag in entry point** — change `parent.parent` to `parent`:
-```python
-# Old (src/ layout):
-_venv_python = Path(__file__).resolve().parent.parent / ".venv" / "bin" / "python"
-
-# New (root layout):
-_venv_python = Path(__file__).resolve().parent / ".venv" / "bin" / "python"
-```
-
-3. **Update `pyproject.toml`**:
+2. **Update `pyproject.toml`**:
 ```toml
 # Old:
 # [tool.ruff]
@@ -85,7 +76,7 @@ src = ["."]
 pythonpath = ["."]
 ```
 
-4. **Update `Makefile`** — replace `src/` references:
+3. **Update `Makefile`** — replace `src/` references:
 ```makefile
 PY_FILES := $(wildcard *.py)
 
@@ -96,18 +87,14 @@ typecheck:
 	.venv/bin/mypy $(PY_FILES)
 ```
 
-5. **Update `make/lint.sh`** and **`make/install.sh`**:
+4. **Update `make/lint.sh`**:
 ```bash
 # Old: "$ROOT_DIR/.venv/bin/ruff" check src/ tests/
 # New:
 "$ROOT_DIR/.venv/bin/ruff" check "$ROOT_DIR"/*.py tests/
-
-# Old: cp "$ROOT_DIR/src/$SCRIPT_NAME" "$INSTALL_DIR/$BINARY_NAME"
-# New:
-cp "$ROOT_DIR/$SCRIPT_NAME" "$INSTALL_DIR/$BINARY_NAME"
 ```
 
-6. **Remove `sys.path` hacks from tests** (no longer needed):
+5. **Remove `sys.path` hacks from tests** (no longer needed):
 ```python
 # Delete these lines from test files:
 # import sys
@@ -115,7 +102,7 @@ cp "$ROOT_DIR/$SCRIPT_NAME" "$INSTALL_DIR/$BINARY_NAME"
 # sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 ```
 
-7. **Verify**:
+6. **Verify**:
 ```bash
 make test
 make lint
@@ -463,7 +450,7 @@ make test
 When migrating a Python component inside a monorepo:
 
 - Treat `<component>/` as the project root throughout all scenarios
-- The self-relaunching shebag works unchanged: `Path(__file__).resolve().parent` resolves to `<component>/`
+- Run the app from the component root: `cd <component> && .venv/bin/python -m <module>`
 - `make/setup.sh` computes `ROOT_DIR` as `$(dirname "$0")/..`, resolving to `<component>/`
 - Sub-packages inside `<component>/` are legitimate domain packages — not Anti-Pattern 2
 

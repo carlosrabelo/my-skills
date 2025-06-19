@@ -39,18 +39,10 @@ Do **not** create `utils/`, `helpers/`, `common/` — use domain-specific names.
 ## Entry Point Template
 
 ```python
-#!/usr/bin/env python3
 """Command-line interface for project-name."""
 
-import os
-import sys
-from pathlib import Path
-
-_venv_python = Path(__file__).resolve().parent / ".venv" / "bin" / "python"
-if _venv_python.exists() and Path(sys.executable).resolve() != _venv_python.resolve():
-    os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
-
 import argparse
+import sys
 
 from processor import process
 from errors import ProcessingError, ValidationError
@@ -79,8 +71,7 @@ if __name__ == "__main__":
 ```
 
 ```bash
-chmod +x fetcher.py
-./fetcher.py --help
+.venv/bin/python -m fetcher --help
 ```
 
 ---
@@ -209,14 +200,15 @@ make lint         # Check for issues
 make typecheck    # Type check
 make test         # Run tests
 
-# Run a script directly (use the actual entry point name)
-./fetcher.py --help
+# Run the application (use the actual module name)
+.venv/bin/python -m fetcher --help
+make run
 
 # Before committing
 make lint
 make test
 
-# Install script locally
+# Install locally (requires [project.scripts] in pyproject.toml)
 make install
 project-name --help
 ```

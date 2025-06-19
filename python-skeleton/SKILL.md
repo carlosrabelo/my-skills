@@ -1,6 +1,6 @@
 ---
 name: python-skeleton
-description: Standard Python project structure (pyproject.toml, .venv at root, flat layout, shebags). Creates from scratch or reorganizes existing projects.
+description: Standard Python project structure (pyproject.toml, .venv at root, flat layout, python -m execution). Creates from scratch or reorganizes existing projects.
 mode: agent
 category: python
 shared: true
@@ -25,7 +25,7 @@ Before starting, determine the context:
 
 4. **Always read `references/layout.md`** — it is the canonical target structure for both flows.
 
-5. **Read `references/patterns.md`** when the task involves testing patterns, error handling, anti-patterns, or shebags.
+5. **Read `references/patterns.md`** when the task involves testing patterns, error handling, anti-patterns, or running the application.
 
 ## Reference Files
 
@@ -34,7 +34,7 @@ Before starting, determine the context:
 | `references/layout.md` | Always — canonical structure |
 | `references/create.md` | Creating a new project from scratch |
 | `references/migrate.md` | Reorganizing an existing Python project |
-| `references/patterns.md` | Testing, error handling, anti-patterns, shebags |
+| `references/patterns.md` | Running the app, testing, error handling, anti-patterns |
 
 ## Monorepo Usage
 

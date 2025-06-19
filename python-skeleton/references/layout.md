@@ -7,7 +7,7 @@ Canonical target structure for all Python projects. Source files live directly a
 - `pyproject.toml` is the single source of truth for metadata and dependencies
 - Source files live directly at the project root — sub-packages only when a true module is needed
 - The main entry point can be named anything (`main.py`, `fetcher.py`, `cli.py`, etc.) — use a domain-specific name, not necessarily `main.py`
-- Scripts at the project root use `.venv` (same directory) for the self-relaunching shebag
+- Applications are run with `python -m <module>` using `.venv/bin/python`
 - Python version: **3.12**
 
 ## Standard Project Layout
@@ -30,7 +30,7 @@ project-name/
 ├── README.md                     ← English documentation
 ├── README-PT.md                  ← Portuguese documentation
 │
-├── fetcher.py                    ← Main entry point (domain-named, executable, has shebag)
+├── fetcher.py                    ← Main entry point (domain-named, run via python -m)
 ├── processor.py                  ← Core logic module
 ├── errors.py                     ← Custom exception types
 ├── models/                       ← Sub-package ONLY if there are multiple related modules
@@ -88,6 +88,9 @@ dev = [
     "mypy>=1.10",
 ]
 
+[project.scripts]
+project-name = "fetcher:main"   # ← use actual module name and entry function
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
@@ -132,7 +135,7 @@ MAKEFLAGS += --no-print-directory
 
 PY_FILES := $(wildcard *.py)
 
-.PHONY: setup test lint fmt typecheck clean install help
+.PHONY: setup test lint fmt typecheck clean install run help
 
 setup:
 	./make/setup.sh
@@ -154,6 +157,9 @@ clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 
+run:
+	.venv/bin/python -m fetcher   # ← use actual module name; append args via: make run ARGS="--help"
+
 install: setup
 	./make/install.sh
 
@@ -167,7 +173,8 @@ help:
 	@echo "  fmt        Format code (ruff format)"
 	@echo "  typecheck  Run type checker (mypy)"
 	@echo "  clean      Remove build artifacts and __pycache__"
-	@echo "  install    Install script(s) to ~/.local/bin"
+	@echo "  run        Run the application"
+	@echo "  install    Install to ~/.local/bin"
 ```
 
 ---
@@ -218,12 +225,11 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 #!/bin/bash
 set -euo pipefail
 
-SCRIPT_NAME="fetcher.py"   # ← use the actual name of your entry point
-BINARY_NAME="project-name"
+BINARY_NAME="project-name"   # ← must match [project.scripts] key in pyproject.toml
 INSTALL_DIR="${HOME}/.local/bin"
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-cp "$ROOT_DIR/$SCRIPT_NAME" "$INSTALL_DIR/$BINARY_NAME"
+cp "$ROOT_DIR/.venv/bin/$BINARY_NAME" "$INSTALL_DIR/$BINARY_NAME"
 chmod +x "$INSTALL_DIR/$BINARY_NAME"
 echo "Installed: $INSTALL_DIR/$BINARY_NAME"
 ```
@@ -272,5 +278,5 @@ Thumbs.db
 This skill applies to whichever directory contains `pyproject.toml` — that is the Python project root.
 
 - `pyproject.toml` and `.venv` live inside `<component>/`, not at the git root
-- The self-relaunching shebag works unchanged: `Path(__file__).resolve().parent` resolves to `<component>/`
+- Run the app from the component root: `cd <component> && .venv/bin/python -m <module>`
 - Sub-packages inside `<component>/` are legitimate domain packages, not the `src/` anti-pattern

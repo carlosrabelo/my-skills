@@ -8,14 +8,35 @@ shared: false
 
 # Sync Skills
 
-Copy all skills from this project to `~/.claude/skills/`, `~/.config/opencode/skills/`, `~/.gemini/skills/`, and `~/.gemini/antigravity/skills/`.
+Copy all public skills from this project to the four global destinations.
 
-## What This Does
+## What Gets Synced
 
-The skills in this project live in the **project root** (e.g. `keybindings-help/`, `go-skeleton/`), while `sync-skills` itself lives in `.claude/skills/sync-skills/`. This skill:
+Only **public skills** — root-level directories that contain a `SKILL.md`:
 
-1. **Removes obsolete skill directories** from all destinations (skills that have been renamed or deleted)
-2. **Copies every current skill** from the project root into all four destinations
+```
+git-commit-suggest/   github-repo-editor/   gitignore-skeleton/
+go-skeleton/          makefile-skeleton/    monorepo-skeleton/
+python-skeleton/      readme-skeleton/
+```
+
+## What Is NOT Synced
+
+| Path | Reason |
+|------|--------|
+| `.claude/skills/audit-skills` | Internal — only useful inside this repo |
+| `.claude/skills/sync-skills` | This skill itself |
+| `.claude/agents/` | Project-local — system prompts reference this repo specifically |
+| `.claude/commands/` | Project-local — commands have hardcoded paths to this repo |
+
+## Destinations
+
+| Destination | Tool |
+|-------------|------|
+| `~/.claude/skills/` | Claude Code |
+| `~/.config/opencode/skills/` | OpenCode |
+| `~/.gemini/skills/` | Gemini CLI |
+| `~/.gemini/antigravity/skills/` | Antigravity |
 
 ## Obsolete Skills
 
@@ -41,11 +62,11 @@ monorepo-project-migrate
 
 ## Steps
 
-1. Determine the project root: go up two levels from this SKILL.md file (i.e. `../../` relative to this file, which resolves to the git repo root).
-2. Determine the destinations: `~/.claude/skills/`, `~/.config/opencode/skills/`, `~/.gemini/skills/`, and `~/.gemini/antigravity/skills/`.
+1. Determine the project root: go up two levels from this file (`../../` → git repo root).
+2. Determine the four destinations listed above.
 3. Create all destination directories if they don't exist.
-4. Remove all obsolete skill directories (listed above) from every destination.
-5. For each subdirectory in the project root that contains a `SKILL.md` (except `sync-skills`), copy it to all destinations.
+4. Remove all obsolete skill directories from every destination.
+5. For each root-level directory that contains a `SKILL.md` (excluding `sync-skills`), copy it to all four destinations.
 6. Report which skills were copied and which (if any) were skipped.
 
 ## Execute
@@ -79,24 +100,21 @@ done
 for skill in "$PROJECT_ROOT"/*/; do
   name=$(basename "$skill")
   if [ "$name" != "sync-skills" ] && [ -f "$skill/SKILL.md" ]; then
-    rm -rf "$DEST_CLAUDE/$name"
-    cp -r "$skill" "$DEST_CLAUDE/$name"
-    rm -rf "$DEST_OPENCODE/$name"
-    cp -r "$skill" "$DEST_OPENCODE/$name"
-    rm -rf "$DEST_GEMINI/$name"
-    cp -r "$skill" "$DEST_GEMINI/$name"
-    rm -rf "$DEST_ANTIGRAVITY/$name"
-    cp -r "$skill" "$DEST_ANTIGRAVITY/$name"
+    for dest in "$DEST_CLAUDE" "$DEST_OPENCODE" "$DEST_GEMINI" "$DEST_ANTIGRAVITY"; do
+      rm -rf "$dest/$name"
+      cp -r "$skill" "$dest/$name"
+    done
     echo "✓ $name"
   fi
 done
 ```
 
-Or let the agent determine the project root from the working directory and execute the steps above.
-
 ## Notes
 
 - Safe to run multiple times — overwrites with the latest version each time.
-- Removes obsolete skill names from all destinations before copying (cleans up renamed/merged skills).
-- Does **not** delete skills in any destination that are not in the obsolete list and do not exist in this project (non-destructive for unrelated skills).
-- Does **not** copy `sync-skills` itself — it only makes sense inside a project.
+- Does **not** copy `.claude/agents/` or `.claude/commands/` — they are project-local infrastructure.
+- Does **not** delete unrelated skills already present in the destinations.
+
+## Related Skills
+
+- **audit-skills** — Run before syncing to ensure all SKILL.md files are structurally correct.
