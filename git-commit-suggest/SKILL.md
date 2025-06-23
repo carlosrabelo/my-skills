@@ -51,3 +51,7 @@ git commit -m "type(scope): description" -m "body explaining why"
 ```
 
 No other text after the code block.
+
+## Related Skills
+
+- **sync-skills** — Run after changes to propagate corrected skills to all destinations.
