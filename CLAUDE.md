@@ -20,6 +20,7 @@ Public skills (synced to all destinations via `/sync-skills`):
 | git-commit-suggest | git | manual | ✓ |
 | github-repo-editor | github | manual | ✓ |
 | gitignore-skeleton | git | agent | ✓ |
+| esp32-skeleton | project | agent | ✓ |
 | go-skeleton | go | agent | ✓ |
 | makefile-skeleton | tooling | agent | ✓ |
 | monorepo-skeleton | project | agent | ✓ |
@@ -38,7 +39,6 @@ Internal skills (`.claude/skills/` — not synced):
 | Command | Purpose |
 |---------|---------|
 | `/new-skill <name>` | Scaffold a new skill directory with SKILL.md template |
-| `/audit` | Audit all public SKILL.md files for structural compliance |
 | `/skill-map` | Show current skill inventory with categories and modes |
 
 ## Agents

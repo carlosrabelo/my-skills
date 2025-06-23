@@ -6,7 +6,7 @@ Standard structure and patterns for writing Makefiles in Go and Python projects.
 
 The Makefile is the single developer interface for a project — you always type `make <something>`, never a raw tool command directly. It should be short, self-documenting, and delegate complex logic to `make/` scripts.
 
-**Key principle**: The Makefile orchestrates; `make/` scripts do the work. If a target needs more than two or three shell lines, extract it to a script.
+**Key principle**: The Makefile orchestrates; `make/` scripts do the work. If a target needs more than one shell line, extract it to a script.
 
 ---
 
@@ -109,8 +109,7 @@ uninstall: ## Remove installed binary
 	@./make/uninstall.sh --user
 
 clean: ## Remove build artifacts and caches
-	@rm -rf $(BUILD_DIR)
-	@go clean -cache -testcache 2>/dev/null || true
+	@./make/clean.sh
 ```
 
 `run` is optional — include it only when the project has a meaningful "run" mode.
@@ -172,7 +171,7 @@ quality: fmt lint typecheck ## Run all quality checks
 
 ## Delegate-to-`make/` Pattern
 
-If a target needs more than two or three shell lines, extract the logic to a `make/` script and delegate:
+If a target needs more than one shell line, extract the logic to a `make/` script and delegate:
 
 ```makefile
 build: ## Build binary
@@ -184,13 +183,9 @@ test: ## Run all tests
 
 The `@` prefix suppresses echoing the command. Scripts get version information from environment variables or Makefile variables passed as arguments.
 
-**What stays inline** (simple enough to keep in the Makefile):
+**What stays inline** (single-line targets):
 
 ```makefile
-clean: ## Remove build artifacts
-	@rm -rf bin/
-	@go clean -cache -testcache 2>/dev/null || true
-
 fmt: ## Format Go sources
 	@go fmt ./...
 
@@ -311,8 +306,7 @@ uninstall: ## Remove installed binary
 	@./make/uninstall.sh --user
 
 clean: ## Remove build artifacts and caches
-	@rm -rf $(BUILD_DIR)
-	@go clean -cache -testcache 2>/dev/null || true
+	@./make/clean.sh
 
 version: ## Show version
 	@echo "$(BINARY_NAME) $(VERSION) ($(BUILD_TIME))"
@@ -362,13 +356,14 @@ uninstall: ## Remove installed entry points
 	@./make/uninstall.sh
 
 clean: ## Remove build artifacts and caches
-	@rm -rf __pycache__ .mypy_cache .ruff_cache dist *.egg-info
-	@find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+	@./make/clean.sh
 ```
 
 ---
 
 ## Anti-Patterns
+
+❌ **`all` target** — avoid creating an `all` target. Its meaning varies by project (build everything? test everything? both?), which makes it ambiguous and unreliable. Use specific named targets (`build`, `test`, `quality`) that say exactly what they do.
 
 ❌ **Missing `MAKEFLAGS += --no-print-directory`** — directory enter/leave messages pollute output whenever you use `$(MAKE) -C`.
 
@@ -376,7 +371,7 @@ clean: ## Remove build artifacts and caches
 
 ❌ **Targets without `##` inline comments** — the `help` target produces nothing useful; contributors have to read the Makefile to learn what targets exist.
 
-❌ **Multi-line shell logic inside the Makefile** — extraction to `make/` scripts makes logic testable, readable, and reusable from CI without going through Make.
+❌ **More than one shell line inside a target** — if a target body has two or more lines, extract it to a `make/` script. Multi-line logic in the Makefile is harder to test, read, and reuse from CI.
 
 ❌ **Two Makefiles for one language project** — a single root Makefile is the rule. The monorepo exception (root orchestrator + component Makefiles) does not apply to single-component projects.
 
@@ -390,6 +385,6 @@ clean: ## Remove build artifacts and caches
 
 - Start every Makefile with `MAKEFLAGS += --no-print-directory` and `.DEFAULT_GOAL := help`
 - Every user-visible target gets an `##` inline doc comment
-- Delegate complex logic to `make/` scripts; keep the Makefile short
+- Any target with more than one shell line must be extracted to a `make/` script
 - Declare all non-file targets in a single `.PHONY` line at the top
 - Use `quality: fmt vet lint` (Go) or `quality: fmt lint typecheck` (Python) as a commit-readiness shortcut

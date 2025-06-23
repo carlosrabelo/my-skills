@@ -8,6 +8,8 @@ shared: false
 
 # Sync Skills
 
+Execute the bash block in `## Execute` immediately. Do not ask for confirmation, do not summarize the plan — just run it and report the results.
+
 Copy all public skills from this project to the four global destinations.
 
 ## What Gets Synced
