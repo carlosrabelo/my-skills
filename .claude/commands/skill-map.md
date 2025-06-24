@@ -5,22 +5,24 @@ description: Show current skill inventory with categories, modes and sync status
 
 Show the complete skill inventory for this project.
 
-## Public skills (synced to destinations)
-
-!`for d in /home/carlos/Sources/11/my-skills/*/; do name=$(basename "$d"); if [ -f "$d/SKILL.md" ]; then category=$(grep '^category:' "$d/SKILL.md" 2>/dev/null | head -1 | sed 's/category: //'); mode=$(grep '^mode:' "$d/SKILL.md" 2>/dev/null | head -1 | sed 's/mode: //'); shared=$(grep '^shared:' "$d/SKILL.md" 2>/dev/null | head -1 | sed 's/shared: //'); echo "$name | $category | $mode | shared=$shared"; fi; done | sort`
-
-## Internal skills (not synced)
-
-!`ls /home/carlos/Sources/11/my-skills/.claude/skills/ 2>/dev/null`
-
 ## Instructions
 
-Present the data above as a markdown table grouped by category:
+1. Use the Glob tool to find all `SKILL.md` files under the project root:
+   - Pattern `*/SKILL.md` for public skills (top-level directories)
+   - Pattern `.claude/skills/*/SKILL.md` for internal skills
+
+2. For each file found, use Grep to extract the frontmatter fields:
+   - `^category:` — the skill category
+   - `^mode:` — agent or manual
+   - `^shared:` — true or false
+
+3. Present the public skills as a markdown table grouped by category:
 
 ```
 | Skill | Category | Mode | Shared |
 |-------|----------|------|--------|
 ```
 
-Then list internal skills separately.
-Include a count: total public + total internal.
+4. List internal skills (`.claude/skills/`) in a separate table with Skill and Purpose columns. Use the `description` frontmatter field as the Purpose.
+
+5. End with a count line: `Total: X public skills, Y internal skills.`

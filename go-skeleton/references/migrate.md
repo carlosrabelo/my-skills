@@ -392,7 +392,7 @@ When migrating a Go component inside a monorepo:
 
 After completing all steps above:
 
-1. **Check the Makefile** — if it exists but does not follow the `makefile-skeleton` standard, invoke the `makefile-skeleton` skill
-2. **Check the READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-skeleton` skill
-3. **Check the `.gitignore`** — if it is missing the AI Tools section or deviates from the standard, invoke the `gitignore-skeleton` skill
+1. **Check the Makefile** — verify it matches the standard in `references/layout.md` (opening lines, .PHONY, help pattern, make/ delegation)
+2. **Check the `.gitignore`** — if it is missing the AI Tools section or deviates from the standard, invoke the `gitignore-skeleton` skill
+3. **Check the READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-skeleton` skill
 4. **Commit the changes** — invoke the `git-commit-suggest` skill to stage and commit the reorganization

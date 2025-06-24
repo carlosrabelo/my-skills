@@ -46,13 +46,12 @@ See **monorepo-skeleton** for the full monorepo layout, root Makefile patterns, 
 
 When creating a complete Go project from scratch, the full workflow involves these skills in order:
 
-1. **`makefile-skeleton`** — create the Makefile with standard targets
-2. **`readme-skeleton`** — create `README.md` with the standard structure
-3. **`readme-skeleton`** handles `README-PT.md` automatically as part of the README flow
+1. **`gitignore-skeleton`** — `.gitignore` with Go patterns (binaries, vendor, caches)
+2. **`readme-skeleton`** — `README.md` with the standard structure (handles `README-PT.md` automatically)
 
 ## Related Skills
 
-- **makefile-skeleton** — Standard Makefile structure and targets used in every Go project
+- **makefile-skeleton** — Generic Makefile structure conventions (opening lines, .PHONY, help pattern)
 - **readme-skeleton** — Standard README content, section order, and bilingual conventions
 - **gitignore-skeleton** — For bringing `.gitignore` up to the standard after reorganization
 - **monorepo-skeleton** — For organizing multi-language monorepos with Go as one component

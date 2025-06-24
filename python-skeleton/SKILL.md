@@ -41,7 +41,7 @@ Before starting, determine the context:
 This skill applies to whichever directory contains `pyproject.toml` — that is the Python project root.
 
 - `pyproject.toml` and `.venv` live inside `<component>/`, not at the git root
-- The self-relaunching shebag works unchanged: `Path(__file__).resolve().parent` resolves to `<component>/`
+- The self-relaunching shebang works unchanged: `Path(__file__).resolve().parent` resolves to `<component>/`
 
 See **monorepo-skeleton** for the full monorepo layout, root Makefile patterns, and component naming conventions.
 
@@ -49,13 +49,12 @@ See **monorepo-skeleton** for the full monorepo layout, root Makefile patterns, 
 
 When creating a complete Python project from scratch, the full workflow involves these skills in order:
 
-1. **`makefile-skeleton`** — create the Makefile with standard targets
-2. **`readme-skeleton`** — create `README.md` with the standard structure
-3. **`readme-skeleton`** handles `README-PT.md` automatically as part of the README flow
+1. **`gitignore-skeleton`** — `.gitignore` with Python patterns (.venv, __pycache__, .egg-info)
+2. **`readme-skeleton`** — `README.md` with the standard structure (handles `README-PT.md` automatically)
 
 ## Related Skills
 
-- **makefile-skeleton** — Standard Makefile structure and targets used in every Python project
+- **makefile-skeleton** — Generic Makefile structure conventions (opening lines, .PHONY, help pattern)
 - **readme-skeleton** — Standard README content and section order
 - **gitignore-skeleton** — For bringing `.gitignore` up to the standard after reorganization
 - **monorepo-skeleton** — For organizing multi-language monorepos with Python as one component
