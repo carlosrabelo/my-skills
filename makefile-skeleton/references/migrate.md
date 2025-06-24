@@ -11,7 +11,8 @@ Use this when a project has an existing Makefile that deviates from the standard
 - Has a single `.PHONY` declaration at the top
 - Uses the grep+awk self-documenting help pattern
 - Delegates complex logic to `make/` scripts
-- Has all standard targets (`build`, `test`, `lint`, `fmt`, `clean`, `install`, `uninstall`, `quality`, `version`)
+- Has the standard generic targets (`build`, `test`, `clean`, `quality`, `help`)
+- Language-specific targets (`fmt`, `lint`, `vet`, `typecheck`, `setup`, `install`, `version`, etc.) follow the respective language skeleton
 
 ---
 
@@ -186,22 +187,11 @@ Common scripts to extract: `build.sh`, `test.sh`, `install.sh`, `uninstall.sh`, 
 
 **`quality` meta-target** (groups all quality checks):
 ```makefile
-quality: fmt vet lint ## Run all quality checks
+quality: ## Run all quality checks
+	@./make/quality.sh
 ```
-For Python: `quality: fmt lint typecheck`
 
-**`version` target** (shows build metadata):
-```makefile
-version: ## Show version
-	@echo "$(BINARY_NAME) $(VERSION) ($(BUILD_TIME))"
-```
-Requires the variables block (see Scenario 6).
-
-**`setup` target** (Python only — creates `.venv` and installs deps):
-```makefile
-setup: ## Create .venv and install dependencies
-	@./make/setup.sh
-```
+The composition of `quality` is language-specific — see the respective skeleton (go-skeleton, python-skeleton, etc.) for the exact dependencies (`fmt vet lint`, `fmt lint typecheck`, etc.).
 
 Add the new target names to `.PHONY` after adding them.
 
@@ -209,38 +199,11 @@ Add the new target names to `.PHONY` after adding them.
 
 ### Scenario 6: Add Variables Block
 
-**When**: The Makefile hard-codes binary names, paths, or version strings directly inside targets instead of using variables.
-
-**Before:**
-```makefile
-build:
-	@go build -ldflags="-s -w" -o bin/myapp ./cmd/myapp
-
-install:
-	@cp bin/myapp $(HOME)/.local/bin/myapp
-```
-
-**After:**
-```makefile
-BINARY_NAME := myapp
-BUILD_DIR   := bin
-INSTALL_DIR := $(HOME)/.local/bin
-
-VERSION    := $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
-BUILD_TIME := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
-LDFLAGS    := -s -w -X main.version=$(VERSION) -X main.buildTime=$(BUILD_TIME)
-```
-
-Then update targets to use the variables:
-```makefile
-build: ## Build binary
-	@go build -ldflags="$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/$(BINARY_NAME)
-
-install: build ## Install binary to $(INSTALL_DIR)
-	@cp $(BUILD_DIR)/$(BINARY_NAME) $(INSTALL_DIR)/$(BINARY_NAME)
-```
+**When**: The Makefile hard-codes names, paths, or version strings directly inside targets.
 
 Place the variables block after `.PHONY` and before the first target. Use `:=` (immediate assignment) for static values; use `$(shell ...)` for values derived at build time.
+
+Language-specific variable patterns (Go's `BINARY_NAME`, `LDFLAGS`, `VERSION`; ESP32's `UPLOAD_PORT`) are defined in the respective skeleton. Refer to go-skeleton, python-skeleton, or esp32-skeleton for the canonical variables block for that language.
 
 ---
 
@@ -263,13 +226,10 @@ Place the variables block after `.PHONY` and before the first target. Use `:=` (
 
 **After:**
 - [ ] `make help` shows all expected targets
-- [ ] `make build` produces the binary in `bin/`
+- [ ] `make build` produces the expected output
 - [ ] `make test` runs and passes
-- [ ] `make quality` runs lint, fmt, vet without errors
-- [ ] `make version` shows version and build time
+- [ ] `make quality` runs without errors
 - [ ] `make clean` removes build artifacts
-- [ ] `make install` installs the binary to the expected location
-- [ ] `make uninstall` removes the installed binary
 
 ---
 

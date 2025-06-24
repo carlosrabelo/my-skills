@@ -43,7 +43,7 @@ Ask or infer from the user's description:
 1. `src/main.cpp` — minimal Arduino sketch
 2. `platformio.ini` — single `[env:<board>]` section
 3. `Makefile` — standard targets
-4. `make/check-pio.sh`, `make/run-pio.sh`, `make/clean.sh`
+4. `make/check-pio.sh`, `make/install-pio.sh`, `make/run-pio.sh`, `make/clean.sh`
 5. `.gitignore` — see gitignore-skeleton for PlatformIO patterns
 6. `README.md`
 
@@ -70,16 +70,18 @@ Ask or infer from the user's description:
 All tiers share the same Makefile targets:
 
 ```makefile
-build      # pio run
-upload     # pio run --target upload
-flash      # build + upload
-monitor    # pio device monitor
-clean      # pio run --target clean
-deps       # pio pkg install
-check      # pio check (static analysis)
-test       # pio test
-erase      # pio run --target erase
-help       # show available targets
+build        # pio run
+upload       # pio run --target upload
+flash        # build + upload
+monitor      # pio device monitor
+clean        # pio run --target clean
+deps         # pio pkg install
+check        # pio check (static analysis)
+test         # pio test
+erase        # pio run --target erase
+check-pio    # verify PlatformIO is installed
+install-pio  # pip install platformio
+help         # show available targets
 ```
 
 For Advanced tier, add:
@@ -98,21 +100,26 @@ BOARD ?= esp32     # selectable via: make BOARD=esp8266 flash
 #!/bin/bash
 set -euo pipefail
 
-# Check if PlatformIO is available via pipx venv or PATH
 if command -v pio &>/dev/null; then
     exit 0
 fi
 
-PIPX_PIO="$HOME/.local/pipx/venvs/platformio/bin/pio"
-if [ -f "$PIPX_PIO" ]; then
-    export PATH="$(dirname "$PIPX_PIO"):$PATH"
+PIO_DEFAULT="$HOME/.platformio/penv/bin/pio"
+if [ -f "$PIO_DEFAULT" ]; then
     exit 0
 fi
 
-echo "PlatformIO not found. Install with:"
-echo "  pipx install platformio"
-echo "  # or: pip install platformio"
+echo "PlatformIO not found. Run: make install-pio"
 exit 1
+```
+
+### `make/install-pio.sh`
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+pip install platformio
 ```
 
 ### `make/run-pio.sh`
@@ -121,10 +128,10 @@ exit 1
 #!/bin/bash
 set -euo pipefail
 
-# Activate PlatformIO from pipx venv if needed, then run pio with all args
-PIPX_PIO="$HOME/.local/pipx/venvs/platformio/bin/pio"
-if [ -f "$PIPX_PIO" ]; then
-    export PATH="$(dirname "$PIPX_PIO"):$PATH"
+# Add default PlatformIO install path to PATH if pio is not in PATH
+PIO_DEFAULT="$HOME/.platformio/penv/bin/pio"
+if [ -f "$PIO_DEFAULT" ]; then
+    export PATH="$(dirname "$PIO_DEFAULT"):$PATH"
 fi
 
 exec pio "$@"
@@ -176,7 +183,7 @@ MONITOR_PORT     ?= /dev/ttyUSB0
 MONITOR_SPEED    ?= 115200
 UPLOAD_SPEED     ?= 921600
 
-.PHONY: build upload flash monitor clean deps check test erase help
+.PHONY: build check check-pio clean deps erase flash help install-pio monitor test upload
 
 build: check-pio ## Compile firmware
 	./make/run-pio.sh run
@@ -207,7 +214,10 @@ test: check-pio ## Run unit tests
 erase: check-pio ## Erase device flash memory
 	./make/run-pio.sh run --target erase
 
-check-pio:
+install-pio: ## Install PlatformIO
+	@./make/install-pio.sh
+
+check-pio: ## Verify PlatformIO is installed
 	@./make/check-pio.sh
 
 help: ## Show this help

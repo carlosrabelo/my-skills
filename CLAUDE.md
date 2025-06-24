@@ -24,6 +24,7 @@ Public skills (synced to all destinations via `/sync-skills`):
 | go-skeleton | go | agent | ✓ |
 | makefile-skeleton | tooling | agent | ✓ |
 | monorepo-skeleton | project | agent | ✓ |
+| project-scaffold | project | agent | ✓ |
 | python-skeleton | python | agent | ✓ |
 | readme-skeleton | documentation | agent | ✓ |
 

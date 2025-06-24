@@ -28,17 +28,42 @@ Look at `platformio.ini` to determine current complexity:
 
 ## Step 3 — Common Gaps to Fix
 
-### Missing `make/` scripts
+### Required `make/` scripts
 
-If the project has no helper scripts, create:
-- `make/check-pio.sh`
-- `make/run-pio.sh`
+Verify each script exists. Create any that are missing using the templates in `create.md` Step 5:
 
-See `create.md` Step 5 for content.
+- [ ] `make/check-pio.sh` — verifies PlatformIO is installed
+- [ ] `make/install-pio.sh` — installs PlatformIO via pip
+- [ ] `make/run-pio.sh` — wraps `pio` with PATH fallback
+- [ ] `make/clean.sh` — delegates clean to PlatformIO
 
-### Makefile missing standard targets
+For Standard tier also check:
+- [ ] `make/detect_board.sh` — auto-detects USB port
 
-Compare against the standard Makefile in `create.md` Step 6. Add missing targets without removing project-specific ones.
+### Required Makefile targets
+
+Verify each target exists. Add any that are missing using the template in `create.md` Step 6. Do not remove project-specific targets.
+
+| Target | Must exist in |
+|--------|--------------|
+| `build` | All tiers |
+| `upload` | All tiers |
+| `flash` | All tiers |
+| `monitor` | All tiers |
+| `clean` | All tiers |
+| `deps` | All tiers |
+| `check` | All tiers |
+| `test` | All tiers |
+| `erase` | All tiers |
+| `check-pio` | All tiers |
+| `install-pio` | All tiers |
+| `help` | All tiers |
+
+Also verify:
+- `MAKEFLAGS += --no-print-directory` is the first line
+- `.DEFAULT_GOAL := help` is the second line
+- All targets are declared in a single `.PHONY` line (alphabetical)
+- `check-pio` has `## Verify PlatformIO is installed` so it appears in `make help`
 
 ### Secrets committed to git
 

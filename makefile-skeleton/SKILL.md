@@ -40,6 +40,8 @@ See **monorepo-skeleton** for the full monorepo layout, root Makefile patterns, 
 
 ## Related Skills
 
-- **go-skeleton** — Covers the `make/` scripts that Makefile targets delegate to in Go projects
-- **python-skeleton** — Covers the `setup` target, `.venv` conventions, and `make/setup.sh`
+- **go-skeleton** — Complete Go Makefile with `BINARY_NAME`, `LDFLAGS`, `VERSION`, and `make/` scripts
+- **python-skeleton** — Complete Python Makefile with `setup`, `typecheck`, `.venv`, and `make/setup.sh`
+- **esp32-skeleton** — Complete ESP32 Makefile with `flash`, `monitor`, `install-pio`, and PlatformIO scripts
 - **monorepo-skeleton** — Root orchestrator Makefile pattern for multi-component repos
+- **project-scaffold** — Auto-detects project type and applies the appropriate skeleton
