@@ -41,7 +41,11 @@ shared: true | false
 5. `description` must be keyword-rich to enable automatic triggering
 6. `name` must be identical to the parent directory name
 
-## Minimum Skill Structure
+## SKILL.md Structure
+
+Every SKILL.md is **self-contained** — it must work without reading any external files. Never create a `references/` subdirectory.
+
+### Minimum structure (create-only skill)
 
 ```markdown
 ---
@@ -58,27 +62,64 @@ One-sentence purpose statement.
 
 ## Context Detection
 
-Steps to determine create vs migrate flow (if applicable).
+Steps to determine context (e.g. create vs migrate). Point to internal sections:
+"If X exists → follow ## Migrating ... below. Otherwise → follow ## Creating from Scratch below."
 
-## Reference Files
+## Creating from Scratch
 
-| File | When to read |
-|------|-------------|
-| `references/create.md` | Always |
-
-## Steps
-
-1. Step one
-2. Step two
+Steps and canonical examples, fully inline.
 
 ## Related Skills
 
-- **sync-skills** — Run after changes to propagate to all destinations.
+- **other-skill** — Brief reason for the relationship.
 ```
+
+### Structure when a migrate flow exists
+
+When a skill handles both create and migrate, the migrate section must follow this order:
+
+```markdown
+## Migrating an Existing <Thing>
+
+> **You MUST verify and apply EVERY item in the checklist below.
+> Do not skip items because the <thing> looks "mostly correct".**
+
+### Mandatory Checklist
+
+**Before:**
+- [ ] item
+
+**During:**
+- [ ] item
+
+**After:**
+- [ ] item
+
+### Migration Scenarios
+
+#### Scenario N: ...
+```
+
+Rules for the migrate section:
+- The mandatory checklist comes **before** the detailed scenarios, always.
+- The blockquote mandate is required verbatim (substitute `<Thing>` and `<thing>` with the relevant noun).
+- Each scenario has a **When** condition, a **Before/After** code example when applicable, and numbered steps.
+- All content is inline — no "see `references/migrate.md`" or similar.
+
+### Canonical section order (full skill)
+
+1. Frontmatter
+2. Title + one-sentence purpose
+3. `## Context Detection` — determine create vs migrate, reference internal section names
+4. `## Migrating an Existing <Thing>` — checklist first, then scenarios (omit if create-only)
+5. `## Creating from Scratch`
+6. `## Canonical <Thing> Format` — authoritative format rules (omit if create-only)
+7. `## Anti-Patterns` (optional but recommended)
+8. `## Related Skills`
 
 ## When Creating a New Skill
 
 1. Check whether the directory already exists using `Glob`
-2. Create `<name>/SKILL.md` with the template above, filled in
-3. If the skill uses `references/`, create the corresponding files
-4. Validate: `name` = dirname, no Changelog, has Related Skills, all content in English
+2. Create `<name>/SKILL.md` following the structure above, filled in
+3. **Never** create a `references/` directory or any external reference files
+4. Validate: `name` = dirname, no Changelog, has Related Skills, all content in English, under 500 lines

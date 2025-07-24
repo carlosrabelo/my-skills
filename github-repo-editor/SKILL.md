@@ -1,8 +1,8 @@
 ---
 name: github-repo-editor
 description: Analyze project code and generate a gh repo edit command with proper description and topics. Use this whenever you want to update your GitHub repository metadata (description and topics). Analyzes project functionality to create accurate, concise descriptions (max 350 chars) and selects 3-5 relevant topics. Returns copy-paste ready gh commands.
-category: github
 mode: manual
+category: github
 shared: true
 ---
 
