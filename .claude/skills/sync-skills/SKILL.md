@@ -1,6 +1,6 @@
 ---
 name: sync-skills
-description: Copies all skills from the current project to ~/.claude/skills/, ~/.config/opencode/skills/, ~/.gemini/skills/, and ~/.gemini/antigravity/skills/, excluding itself. Run this whenever skills are added or updated in the project.
+description: Copies all skills from the current project to ~/.claude/skills/, ~/.config/opencode/skills/, ~/.gemini/skills/, ~/.gemini/antigravity/skills/, and ~/.qwen/scripts/, excluding itself. Run this whenever skills are added or updated in the project.
 mode: manual
 category: meta
 shared: false
@@ -10,7 +10,7 @@ shared: false
 
 Execute the bash block in `## Execute` immediately. Do not ask for confirmation, do not summarize the plan — just run it and report the results.
 
-Copy all public skills from this project to the four global destinations.
+Copy all public skills from this project to the five global destinations.
 
 ## What Gets Synced
 
@@ -40,6 +40,7 @@ readme-skeleton/
 | `~/.config/opencode/skills/` | OpenCode |
 | `~/.gemini/skills/` | Gemini CLI |
 | `~/.gemini/antigravity/skills/` | Antigravity |
+| `~/.qwen/skills/` | Qwen |
 
 ## Obsolete Skills
 
@@ -66,10 +67,10 @@ monorepo-project-migrate
 ## Steps
 
 1. Determine the project root: go up two levels from this file (`../../` → git repo root).
-2. Determine the four destinations listed above.
+2. Determine the five destinations listed above.
 3. Create all destination directories if they don't exist.
 4. Remove all obsolete skill directories from every destination.
-5. For each root-level directory that contains a `SKILL.md` (excluding `sync-skills`), copy it to all four destinations.
+5. For each root-level directory that contains a `SKILL.md` (excluding `sync-skills`), copy it to all five destinations.
 6. Report which skills were copied and which (if any) were skipped.
 
 ## Execute
@@ -80,7 +81,8 @@ DEST_CLAUDE="$HOME/.claude/skills"
 DEST_OPENCODE="$HOME/.config/opencode/skills"
 DEST_GEMINI="$HOME/.gemini/skills"
 DEST_ANTIGRAVITY="$HOME/.gemini/antigravity/skills"
-mkdir -p "$DEST_CLAUDE" "$DEST_OPENCODE" "$DEST_GEMINI" "$DEST_ANTIGRAVITY"
+DEST_QWEN="$HOME/.qwen/skills"
+mkdir -p "$DEST_CLAUDE" "$DEST_OPENCODE" "$DEST_GEMINI" "$DEST_ANTIGRAVITY" "$DEST_QWEN"
 
 OBSOLETE=(
   go-project go-project-create go-project-migrate
@@ -92,7 +94,7 @@ OBSOLETE=(
 )
 
 for name in "${OBSOLETE[@]}"; do
-  for dest in "$DEST_CLAUDE" "$DEST_OPENCODE" "$DEST_GEMINI" "$DEST_ANTIGRAVITY"; do
+  for dest in "$DEST_CLAUDE" "$DEST_OPENCODE" "$DEST_GEMINI" "$DEST_ANTIGRAVITY" "$DEST_QWEN"; do
     if [ -d "$dest/$name" ]; then
       rm -rf "$dest/$name"
       echo "✗ removed obsolete: $name (from $dest)"
@@ -103,7 +105,7 @@ done
 for skill in "$PROJECT_ROOT"/*/; do
   name=$(basename "$skill")
   if [ "$name" != "sync-skills" ] && [ -f "$skill/SKILL.md" ]; then
-    for dest in "$DEST_CLAUDE" "$DEST_OPENCODE" "$DEST_GEMINI" "$DEST_ANTIGRAVITY"; do
+    for dest in "$DEST_CLAUDE" "$DEST_OPENCODE" "$DEST_GEMINI" "$DEST_ANTIGRAVITY" "$DEST_QWEN"; do
       rm -rf "$dest/$name"
       cp -r "$skill" "$dest/$name"
     done

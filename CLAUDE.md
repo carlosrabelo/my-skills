@@ -1,6 +1,6 @@
 # my-skills
 
-Central repository for Claude Code skills. All skills are developed and edited here, then synced to `~/.claude/skills/` via `/sync-skills`.
+Central repository for Claude Code skills. All skills are developed and edited here, then synced to five destinations via `/sync-skills`: `~/.claude/skills/`, `~/.config/opencode/skills/`, `~/.gemini/skills/`, `~/.gemini/antigravity/skills/`, and `~/.qwen/scripts/`.
 
 ## Rules
 
@@ -33,6 +33,7 @@ Internal skills (`.claude/skills/` — not synced):
 | Skill | Purpose |
 |-------|---------|
 | audit-skills | Audit SKILL.md files in this repo for structural compliance |
+| check-sync | Compare source skills against all destinations and report drift |
 | sync-skills | Copy public skills to all destination directories |
 
 ## Commands
