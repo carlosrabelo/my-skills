@@ -1,6 +1,6 @@
 ---
 name: python-skeleton
-description: Standard Python project structure (pyproject.toml, .venv at root, flat layout, python -m execution). Creates from scratch or reorganizes existing projects.
+description: Standard Python project structure (pyproject.toml at root, project_name/ package for all source, python -m execution). Creates from scratch or reorganizes existing projects.
 mode: agent
 category: python
 shared: true
@@ -72,7 +72,8 @@ grep -r "from src" *.py tests/
 - [ ] `make typecheck` passes
 - [ ] `make lint` passes
 - [ ] Entry point ≤ 50 lines
-- [ ] No `src/` directory
+- [ ] All source files inside `project_name/`
+- [ ] No loose `.py` files at project root
 - [ ] No `utils.py` or `helpers.py`
 - [ ] No sub-packages wrapping single files
 - [ ] Commit with clear message
@@ -80,10 +81,11 @@ grep -r "from src" *.py tests/
 #### Rules
 - **Never mix reorganization with logic changes** — reorganize first, then modify behavior in a separate commit
 - **Move one file at a time** — move, update imports, verify tests, repeat
+- **All source files belong in `project_name/`** — no loose `.py` files at project root
 - **No generic module names** — `utils.py`, `helpers.py`, `common.py` must be renamed to domain-specific names
-- **No sub-packages for single files** — flatten to a root-level module instead
+- **No sub-packages for single files** — flatten inside `project_name/` instead
 - **Entry point must be thin** — ≤50 lines, CLI parsing + delegation only
-- **No `src/` directory** — source files belong at project root
+- **Use relative imports** — inside the package use `from .module import thing`
 
 ---
 
@@ -107,23 +109,32 @@ project-name/
 
 **Steps**:
 
-1. **Move source files to project root**:
+1. **Create the package directory and move source files**:
 ```bash
-mv src/*.py .
+mkdir project_name
+touch project_name/__init__.py
+mv src/*.py project_name/
 # Move sub-packages if any
-# mv src/models/ .
+# mv src/models/ project_name/
 rmdir src/
 ```
 
-2. **Update `pyproject.toml`**:
-```toml
-# Old:
-# [tool.ruff]
-# src = ["src"]
-# [tool.pytest.ini_options]
-# pythonpath = ["src"]
-
+2. **Convert absolute imports to relative** inside all moved files:
+```python
+# Old: from errors import ProcessingError
 # New:
+from .errors import ProcessingError
+```
+
+3. **Update `pyproject.toml`**:
+```toml
+[project.scripts]
+project-name = "project_name.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["project_name*"]
+
 [tool.ruff]
 src = ["."]
 
@@ -131,33 +142,37 @@ src = ["."]
 pythonpath = ["."]
 ```
 
-3. **Update `Makefile`** — replace `src/` references:
+4. **Update `Makefile`**:
 ```makefile
-PY_FILES := $(wildcard *.py)
+PY_SOURCES := project_name/
 
 fmt:
-	.venv/bin/ruff format $(PY_FILES) tests/
+	.venv/bin/ruff format $(PY_SOURCES) tests/
 
 typecheck:
-	.venv/bin/mypy $(PY_FILES)
+	.venv/bin/mypy $(PY_SOURCES)
 ```
 
-4. **Update `make/lint.sh`**:
+5. **Update `make/lint.sh`**:
 ```bash
 # Old: "$ROOT_DIR/.venv/bin/ruff" check src/ tests/
 # New:
-"$ROOT_DIR/.venv/bin/ruff" check "$ROOT_DIR"/*.py tests/
+"$ROOT_DIR/.venv/bin/ruff" check "$ROOT_DIR/project_name/" tests/
 ```
 
-5. **Remove `sys.path` hacks from tests** (no longer needed):
+6. **Remove `sys.path` hacks from tests** and update imports:
 ```python
-# Delete these lines from test files:
+# Delete these lines:
 # import sys
 # import os
 # sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+
+# Update imports:
+# Old: from fetcher import main
+# New: from project_name.cli import main
 ```
 
-6. **Verify**:
+7. **Verify**:
 ```bash
 make test
 make lint
@@ -298,7 +313,7 @@ grep -A 10 "def validate_path" convert.py
 grep -A 10 "def validate_path" export.py
 ```
 
-2. **Create a shared module** at project root (e.g., `validation.py`)
+2. **Create a shared module** inside `project_name/` (e.g., `project_name/validation.py`)
 
 3. **Move the common implementation** to the shared module
 
@@ -327,18 +342,18 @@ project-name/
 
 **Steps**:
 
-1. **Move file to project root**:
+1. **Move file to the parent level inside `project_name/`**:
 ```bash
-mv models/item.py item.py
-rm models/__init__.py
-rmdir models/
+mv project_name/models/item.py project_name/item.py
+rm project_name/models/__init__.py
+rmdir project_name/models/
 ```
 
 2. **Update all imports**:
 ```bash
-grep -r "from models" *.py tests/
-# Old: from models.item import Item
-# New: from item import Item
+grep -r "from .models" project_name/ tests/
+# Old: from .models.item import Item
+# New: from .item import Item
 ```
 
 3. **Move tests** if nested:
@@ -356,21 +371,21 @@ make test
 
 #### Scenario 7: Introduce Sub-Package When Justified
 
-**Symptom**: 5+ files of the same domain are hard to distinguish from unrelated logic files.
+**Symptom**: 5+ files of the same domain inside `project_name/` are hard to distinguish from unrelated logic files.
 
 **Steps**:
 
-1. **Create the sub-package**:
+1. **Create the sub-package inside `project_name/`**:
 ```bash
-mkdir -p models
-touch models/__init__.py
+mkdir -p project_name/models
+touch project_name/models/__init__.py
 ```
 
 2. **Move the files** and update imports:
 ```bash
-mv user.py item.py order.py models/
-# Old: from user import User
-# New: from models.user import User
+mv project_name/user.py project_name/item.py project_name/order.py project_name/models/
+# Old: from .user import User
+# New: from .models.user import User
 ```
 
 3. **Move tests**:
@@ -429,6 +444,98 @@ def fixtures_dir() -> Path:
 
 ---
 
+#### Scenario 10: Migrate from Flat Root to project_name/ Package
+
+**Symptom**: Python source files scattered at the project root alongside `Makefile`, `README.md`, `pyproject.toml`.
+
+**Before**:
+```
+project-name/
+├── fetcher.py
+├── processor.py
+├── errors.py
+├── tests/
+└── pyproject.toml
+```
+
+**Steps**:
+
+1. **Create the package directory**:
+```bash
+mkdir project_name
+touch project_name/__init__.py
+```
+
+2. **Move source files into the package**:
+```bash
+mv fetcher.py processor.py errors.py project_name/
+# Move any sub-packages too:
+# mv models/ project_name/
+```
+
+3. **Convert absolute imports to relative** inside all moved files:
+```python
+# Old (in processor.py, now project_name/processor.py):
+from errors import ProcessingError
+
+# New:
+from .errors import ProcessingError
+```
+
+4. **Update entry point** (rename to `cli.py` if it was `main.py` or `fetcher.py`):
+```python
+# Old (fetcher.py):
+from processor import process
+
+# New (project_name/cli.py):
+from .processor import process
+```
+
+5. **Update `pyproject.toml`**:
+```toml
+[project.scripts]
+project-name = "project_name.cli:main"   # was: fetcher:main
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["project_name*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]   # unchanged
+```
+
+6. **Update `Makefile`**:
+```makefile
+# Old:
+PY_FILES := $(wildcard *.py)
+
+# New:
+PY_SOURCES := project_name/
+```
+And update `fmt`, `typecheck`, `run` targets to use `$(PY_SOURCES)` and `project_name.cli`.
+
+7. **Update `make/lint.sh`**:
+```bash
+# Old: "$ROOT_DIR"/*.py
+# New:
+"$ROOT_DIR/.venv/bin/ruff" check "$ROOT_DIR/project_name/" tests/
+```
+
+8. **Update test imports**:
+```python
+# Old: from processor import process
+# New: from project_name.processor import process
+```
+
+9. **Verify**:
+```bash
+make test
+make lint
+make typecheck
+```
+
+---
+
 #### Scenario 9: Migrate requirements.txt to pyproject.toml
 
 **Symptom**: Project uses `requirements.txt` for dependencies instead of `pyproject.toml`.
@@ -468,30 +575,34 @@ make test
 
 ### Project Layout
 
-The main files of the project live directly at the project root. The entry point is named after what it does:
+All source files live inside a directory named after the project (underscores, not hyphens). The entry point is named after what it does:
 
 ```
 project-name/
-├── fetcher.py     ← Entry point: arg parsing (thin). Name matches the domain.
-├── processor.py   ← Core business logic
-└── errors.py      ← Custom exception types
+└── project_name/        ← all source code here
+    ├── __init__.py
+    ├── cli.py            ← Entry point: arg parsing (thin). Name matches the domain.
+    ├── processor.py      ← Core business logic
+    └── errors.py         ← Custom exception types
 ```
 
-Use `main.py` only if no better name exists. Good names: `fetcher.py`, `converter.py`, `scraper.py`, `cli.py`, `importer.py`.
+Use `cli.py` as the entry point when no better domain name exists. Good names: `cli.py`, `fetcher.py`, `converter.py`, `scraper.py`, `importer.py`.
 
 #### When to Add a Sub-Package
 
-Only add a sub-folder when it groups **multiple files** forming a cohesive module:
+Only add a sub-folder inside `project_name/` when it groups **multiple files** forming a cohesive module:
 
 ```
 project-name/
-├── main.py
-├── processor.py
-├── errors.py
-└── models/        ← Sub-package: multiple model types together
+└── project_name/
     ├── __init__.py
-    ├── user.py
-    └── item.py
+    ├── cli.py
+    ├── processor.py
+    ├── errors.py
+    └── models/        ← Sub-package: multiple model types together
+        ├── __init__.py
+        ├── user.py
+        └── item.py
 ```
 
 Do **not** create `utils/`, `helpers/`, `common/` — use domain-specific names.
@@ -501,13 +612,14 @@ Do **not** create `utils/`, `helpers/`, `common/` — use domain-specific names.
 ### Entry Point Template
 
 ```python
+# project_name/cli.py
 """Command-line interface for project-name."""
 
 import argparse
 import sys
 
-from processor import process
-from errors import ProcessingError, ValidationError
+from .processor import process
+from .errors import ProcessingError, ValidationError
 
 
 def main() -> None:
@@ -533,7 +645,7 @@ if __name__ == "__main__":
 ```
 
 ```bash
-.venv/bin/python -m fetcher --help
+.venv/bin/python -m project_name.cli --help
 ```
 
 ---
@@ -541,12 +653,12 @@ if __name__ == "__main__":
 ### `processor.py` — Business Logic
 
 ```python
-# processor.py
+# project_name/processor.py
 """Core processing logic."""
 
 from pathlib import Path
 
-from errors import ProcessingError, ValidationError
+from .errors import ProcessingError, ValidationError
 
 
 def process(input_path: str) -> str:
@@ -582,7 +694,7 @@ def process(input_path: str) -> str:
 ### `errors.py` — Custom Exceptions
 
 ```python
-# errors.py
+# project_name/errors.py
 """Custom exception types for project-name."""
 
 
@@ -617,9 +729,10 @@ class ProcessingError(ProjectError):
 - Always pin minimum versions (`>=`)
 
 #### 3. File Organization
-- Source files directly at the project root — **never create a wrapper directory** (`src/` or `project_name/`), this is the most common mistake
-- Sub-packages only when multiple files form a true module (e.g. `models/`)
-- Tests in `tests/`, mirroring project root structure
+- Source files live in `project_name/` — a directory named after the project (using underscores), containing `__init__.py`
+- Use relative imports inside the package (`from .processor import process`)
+- Sub-packages inside `project_name/` only when multiple files form a cohesive module (e.g. `project_name/models/`)
+- Tests in `tests/`, mirroring the `project_name/` structure
 
 #### 4. Testing
 - Use `pythonpath = ["."]` in `pyproject.toml` — no `sys.path` manipulation needed
@@ -638,11 +751,11 @@ class ProcessingError(ProjectError):
 
 | Need | Location | Notes |
 |------|----------|-------|
-| Add new entry point | `domain-name.py` at project root | Thin: parse args, call modules |
-| Add business logic | `processor.py` or domain-named file at root | Keep thin layers |
-| Add custom exception | `errors.py` at root | Extend `ProjectError` |
-| Add multiple related types | `models/` at root | Only if multiple files are needed |
-| Add test | `tests/` mirroring project root | One test file per source file |
+| Add new entry point | `project_name/cli.py` or domain-named file | Thin: parse args, call modules |
+| Add business logic | `project_name/processor.py` or domain-named file | Keep thin layers |
+| Add custom exception | `project_name/errors.py` | Extend `ProjectError` |
+| Add multiple related types | `project_name/models/` | Only if multiple files are needed |
+| Add test | `tests/` mirroring `project_name/` structure | One test file per source file |
 | Add test fixture | `tests/conftest.py` | Shared across test files |
 | Add runtime dependency | `pyproject.toml [project.dependencies]` | Then `make setup` |
 | Add dev dependency | `pyproject.toml [project.optional-dependencies] dev` | Then `make setup` |
@@ -661,8 +774,8 @@ make lint         # Check for issues
 make typecheck    # Type check
 make test         # Run tests
 
-# Run the application (use the actual module name)
-.venv/bin/python -m fetcher --help
+# Run the application (use actual package.module)
+.venv/bin/python -m project_name.cli --help
 make run
 
 # Before committing
@@ -708,26 +821,28 @@ project-name/
 ├── README.md                     ← English documentation
 ├── README-PT.md                  ← Portuguese documentation
 │
-├── fetcher.py                    ← Main entry point (domain-named, run via python -m)
-├── processor.py                  ← Core logic module
-├── errors.py                     ← Custom exception types
-├── models/                       ← Sub-package ONLY if there are multiple related modules
+├── project_name/                 ← ALL source code (named after the project, underscores)
 │   ├── __init__.py
-│   └── item.py
+│   ├── cli.py                    ← Entry point (domain-named, run via python -m)
+│   ├── processor.py              ← Core logic module
+│   ├── errors.py                 ← Custom exception types
+│   └── models/                   ← Sub-package ONLY if there are multiple related modules
+│       ├── __init__.py
+│       └── item.py
 │
 └── tests/                        ← All tests
     ├── conftest.py               ← Pytest fixtures and configuration
-    ├── test_fetcher.py
+    ├── test_cli.py
     ├── test_processor.py
     └── models/                   ← Mirror sub-packages if they exist
         └── test_item.py
 ```
 
-> The main entry point is named after what it does — `fetcher.py`, `cli.py`, `converter.py`, `scraper.py`, etc. Only use `main.py` if the project has no better domain name for the entry point.
+> The entry point is named after what it does — `cli.py`, `fetcher.py`, `converter.py`, `scraper.py`, etc. The directory `project_name/` always matches the project folder name (replacing hyphens with underscores).
 
 #### When to Create a Sub-Package
 
-Only create a sub-folder at the project root when:
+Only create a sub-folder inside `project_name/` when:
 - It groups **multiple files** that form a cohesive module (e.g., `models/`, `api/`)
 - It needs an `__init__.py` to be importable as a package
 - A single file would become too large or have mixed concerns
@@ -767,7 +882,11 @@ dev = [
 ]
 
 [project.scripts]
-project-name = "fetcher:main"   # ← use actual module name and entry function
+project-name = "project_name.cli:main"   # ← use actual package.module:function
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["project_name*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -786,7 +905,7 @@ python_version = "3.12"
 strict = true
 ```
 
-> For script-based projects, **do not add `packages.find`** — loose files at the project root don't need it.
+> Always add `[tool.setuptools.packages.find]` — tells setuptools to pick up the `project_name/` package when installing.
 
 ---
 
@@ -811,7 +930,7 @@ Single entry point for all operations. Delegates to `make/` scripts.
 ```makefile
 MAKEFLAGS += --no-print-directory
 
-PY_FILES := $(wildcard *.py)
+PY_SOURCES := project_name/
 
 .PHONY: setup test lint fmt typecheck clean install run help
 
@@ -825,10 +944,10 @@ lint:
 	./make/lint.sh
 
 fmt:
-	.venv/bin/ruff format $(PY_FILES) tests/
+	.venv/bin/ruff format $(PY_SOURCES) tests/
 
 typecheck:
-	.venv/bin/mypy $(PY_FILES)
+	.venv/bin/mypy $(PY_SOURCES)
 
 clean:
 	rm -rf dist/ build/ *.egg-info
@@ -836,7 +955,7 @@ clean:
 	find . -type f -name "*.pyc" -delete
 
 run:
-	.venv/bin/python -m fetcher   # ← use actual module name; append args via: make run ARGS="--help"
+	.venv/bin/python -m project_name.cli   # ← use actual package.module; append args via: make run ARGS="--help"
 
 install: setup
 	./make/install.sh
@@ -895,7 +1014,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-"$ROOT_DIR/.venv/bin/ruff" check "$ROOT_DIR"/*.py tests/
+"$ROOT_DIR/.venv/bin/ruff" check "$ROOT_DIR/project_name/" tests/
 ```
 
 **`make/install.sh`**:
@@ -955,31 +1074,32 @@ Thumbs.db
 
 ### Running the Application
 
-Applications are run with `python -m <module>` using the project's `.venv`:
+Applications are run with `python -m <package>.<module>` using the project's `.venv`:
 
 ```bash
 # Standard way to run
-.venv/bin/python -m fetcher
-.venv/bin/python -m fetcher --help
+.venv/bin/python -m project_name.cli
+.venv/bin/python -m project_name.cli --help
 
 # Or via Makefile
 make run
 
 # After activating the venv
 source .venv/bin/activate
-python -m fetcher --help
+python -m project_name.cli --help
 ```
 
 The entry point module must have an `if __name__ == "__main__"` block:
 
 ```python
+# project_name/cli.py
 """Command-line interface for project-name."""
 
 import argparse
 import sys
 
-from processor import process
-from errors import ProcessingError, ValidationError
+from .processor import process
+from .errors import ProcessingError, ValidationError
 
 
 def main() -> None:
@@ -1008,7 +1128,7 @@ Add `[project.scripts]` to `pyproject.toml` to make the tool available as a name
 
 ```toml
 [project.scripts]
-project-name = "fetcher:main"   # ← "module:function"
+project-name = "project_name.cli:main"   # ← "package.module:function"
 ```
 
 After `make setup` (which runs `pip install -e .`), the command is available at `.venv/bin/project-name`. The `make/install.sh` script copies it to `~/.local/bin/`.
@@ -1050,7 +1170,7 @@ def sample_input(tmp_path: Path) -> Path:
 
 #### Table-Style Tests with pytest
 
-With `pythonpath = ["."]` in `pyproject.toml`, imports work directly — no `sys.path` hack needed:
+With `pythonpath = ["."]` in `pyproject.toml`, package imports work directly — no `sys.path` hack needed:
 
 ```python
 # tests/test_processor.py
@@ -1059,8 +1179,8 @@ With `pythonpath = ["."]` in `pyproject.toml`, imports work directly — no `sys
 import pytest
 from pathlib import Path
 
-from processor import process
-from errors import ValidationError, ProcessingError
+from project_name.processor import process
+from project_name.errors import ValidationError, ProcessingError
 
 
 class TestProcess:
@@ -1158,31 +1278,37 @@ git add .venv/
 # GOOD: .venv in .gitignore, reproducible via make/setup.sh
 ```
 
-#### Anti-Pattern 2: Wrapping Source Files in a Package
+#### Anti-Pattern 2: Source Files at Project Root
 
-This is the **most common mistake** when following setuptools docs or other project templates.
+Leaving `.py` source files loose at the project root mixes code with Makefile, README, pyproject.toml — no clear boundary between source and project infrastructure.
 
 ```
-# BAD: named sub-package wrapping all source files
+# BAD: source files mixed with project files at root
 project-name/
-└── project_name/
-    ├── __init__.py
-    └── cli.py
+├── fetcher.py        ← code mixed with...
+├── processor.py      ← ...Makefile, README, pyproject.toml
+├── errors.py
+├── Makefile
+└── pyproject.toml
 
-# BAD: src/ directory wrapping source files (overkill for scripts)
-src/
-├── fetcher.py
-├── processor.py
-└── errors.py
-
-# GOOD: files live directly at the project root
+# BAD: src/ wrapper (generic name, not tied to the project)
 project-name/
-├── fetcher.py
-├── processor.py
-└── errors.py
+└── src/
+    ├── fetcher.py
+    └── processor.py
+
+# GOOD: all source code in a named package directory
+project-name/
+├── project_name/
+│   ├── __init__.py
+│   ├── cli.py
+│   ├── processor.py
+│   └── errors.py
+├── Makefile
+└── pyproject.toml
 ```
 
-The rule: source files live directly at the project root. No `src/` wrapper, no `project_name/` wrapper.
+The rule: all source files live inside `project_name/`. The project root contains only infrastructure: `Makefile`, `pyproject.toml`, `README.md`, `tests/`, `.venv/`, `make/`.
 
 #### Anti-Pattern 3: Logic in main.py
 
@@ -1245,11 +1371,11 @@ reader.py
 
 ```bash
 # BAD: uses system Python, .venv deps not available
-python fetcher.py
-python3 fetcher.py
+python project_name/cli.py
+python3 project_name/cli.py
 
 # GOOD: always use .venv's Python
-.venv/bin/python -m fetcher
+.venv/bin/python -m project_name.cli
 make run
 ```
 
@@ -1257,12 +1383,23 @@ make run
 
 ## Monorepo Usage
 
-This skill applies to whichever directory contains `pyproject.toml` — that is the Python project root.
+This skill applies to whichever directory contains `pyproject.toml` — that is the Python component root. The `project_name/` pattern still applies inside each component.
+
+```
+monorepo/
+└── my-service/               ← component root (pyproject.toml lives here)
+    ├── my_service/           ← all source code (project_name/ pattern)
+    │   ├── __init__.py
+    │   └── cli.py
+    ├── tests/
+    ├── pyproject.toml
+    └── Makefile
+```
 
 - `pyproject.toml` and `.venv` live inside `<component>/`, not at the git root
-- Run the app from the component root: `cd <component> && .venv/bin/python -m <module>`
+- Run the app from the component root: `cd <component> && .venv/bin/python -m my_service.cli`
 - `make/setup.sh` computes `ROOT_DIR` as `$(dirname "$0")/..`, resolving to `<component>/`
-- Sub-packages inside `<component>/` are legitimate domain packages — not Anti-Pattern 2
+- Sub-packages inside `<component>/my_service/` are legitimate domain packages
 
 See **monorepo-skeleton** for the full monorepo layout, root Makefile patterns, and component naming conventions.
 
