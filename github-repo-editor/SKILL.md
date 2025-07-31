@@ -1,6 +1,6 @@
 ---
 name: github-repo-editor
-description: Analyze project code and generate a gh repo edit command with proper description and topics. Use this whenever you want to update your GitHub repository metadata (description and topics). Analyzes project functionality to create accurate, concise descriptions (max 350 chars) and selects 3-5 relevant topics. Returns copy-paste ready gh commands.
+description: Analyze project code and generate a gh repo edit command with proper description and topics (max 350 chars, 3-5 topics). Returns copy-paste ready commands.
 mode: manual
 category: github
 shared: true
@@ -60,13 +60,13 @@ Use this skill when:
 - **Minimum**: 50 characters (descriptive enough)
 
 ### Content
-✅ **Good**:
+**Good**:
 - Clear, direct description of what the project does
 - Primary use case or problem solved
 - Key technology or approach if relevant
 - Professional, concise language
 
-❌ **Avoid**:
+**Avoid**:
 - Vague or generic descriptions
 - Excessive superlatives ("amazing", "best")
 - URLs or links (use topics instead)
@@ -160,12 +160,12 @@ gh repo edit \
 
 ## Execution Requirements
 
-⚠️ **Important**:
-- ❌ Never execute the gh command automatically
-- ✅ Return command as plain text for copy-paste
-- ✅ Ensure command is complete and syntactically correct
-- ✅ Include proper quoting and escaping
-- ✅ Format for easy terminal use
+**Important**:
+- Never execute the gh command automatically
+- Return command as plain text for copy-paste
+- Ensure command is complete and syntactically correct
+- Include proper quoting and escaping
+- Format for easy terminal use
 
 ## Output Format
 
@@ -186,7 +186,7 @@ Makalu is a CLI tool for detecting package inconsistencies across Ubuntu machine
 CLI tool for detecting package inconsistencies across Linux systems. Suggests installation commands for APT, SNAP, and Flatpak package managers.
 
 ## Character Count
-98 / 350 characters ✓
+98 / 350 characters (OK)
 
 ## Selected Topics
 - cli (command-line tool)

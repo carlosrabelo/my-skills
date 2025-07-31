@@ -218,9 +218,9 @@ One sentence describing what the tool does and who it is for.
 
 The description line goes immediately below the title, with no heading. Write in plain present tense. Do not start with "A tool that..." — just describe it directly.
 
-✅ `Command-line application that encrypts and decrypts Bitcoin private keys using the BIP38 standard.`
+Good: `Command-line application that encrypts and decrypts Bitcoin private keys using the BIP38 standard.`
 
-❌ `A tool that can be used to encrypt and decrypt Bitcoin private keys.`
+Bad: `A tool that can be used to encrypt and decrypt Bitcoin private keys.`
 
 ---
 
@@ -380,7 +380,7 @@ project-name decrypt --key 6PY...
 
 Show actual output when it clarifies what the command does. Use subheadings for distinct modes or command groups.
 
-❌ Do not write a Usage section that is only prose with no commands.
+Do not write a Usage section that is only prose with no commands.
 
 ---
 
@@ -431,7 +431,7 @@ cfg/                 # Default configuration files
 ```
 ````
 
-❌ Do not show `src/` — it conflicts with the flat root layout used in all Go and Python projects.
+Do not show `src/` — it conflicts with the flat root layout used in all Go and Python projects.
 
 ---
 
@@ -494,19 +494,13 @@ This project is licensed under the MIT License — see [LICENSE](LICENSE) for de
 
 ## Anti-Patterns
 
-❌ **"A tool that..." in the description** — describes the category, not the tool. Write what it does.
-
-❌ **Mismatched section structure between README.md and README-PT.md** — the two files must have identical section order. If one has `## Configuration`, the other must too.
-
-❌ **Omitting `## Development`** — every contributor needs to know how to build and test. This section is always required.
-
-❌ **Usage section with no commands** — if the reader cannot copy-paste a command and see output, the Usage section has failed.
-
-❌ **`src/` in Project Layout** — this conflicts with the flat root layout used in all Go and Python projects.
-
-❌ **Badge soup** — three or four badges maximum. Ten badges on a personal CLI tool is noise.
-
-❌ **Table of Contents on a short README** — adds scroll overhead with no navigation benefit. Add it only when the file is long enough to need it.
+- **"A tool that..." in the description** — describes the category, not the tool. Write what it does.
+- **Mismatched section structure between README.md and README-PT.md** — the two files must have identical section order. If one has `## Configuration`, the other must too.
+- **Omitting `## Development`** — every contributor needs to know how to build and test. This section is always required.
+- **Usage section with no commands** — if the reader cannot copy-paste a command and see output, the Usage section has failed.
+- **`src/` in Project Layout** — this conflicts with the flat root layout used in all Go and Python projects.
+- **Badge soup** — three or four badges maximum. Ten badges on a personal CLI tool is noise.
+- **Table of Contents on a short README** — adds scroll overhead with no navigation benefit. Add it only when the file is long enough to need it.
 
 ---
 

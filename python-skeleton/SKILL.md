@@ -10,6 +10,27 @@ shared: true
 
 Unified skill for organizing Python projects following a consistent pattern for maintainability and scalability. Handles both new projects and reorganization of existing ones.
 
+## Core Rule
+
+> **All `.py` source files live inside `project_name/`. The project root contains only infrastructure.**
+
+```
+project-name/          ← root: infrastructure only
+├── pyproject.toml     ← project metadata and tool config
+├── Makefile           ← orchestration
+├── make/              ← build/test/lint scripts
+├── bin/               ← scripts/wrappers (optional)
+├── docs/              ← documentation (optional)
+├── tests/             ← test files
+├── README.md
+└── project_name/      ← ALL source code here
+    ├── __init__.py
+    ├── cli.py         ← entry point (thin)
+    └── *.py
+```
+
+This rule applies to **both new projects and migrations**. No loose `.py` files at the project root — ever.
+
 ## Context Detection
 
 Before starting, determine the context:
@@ -82,6 +103,7 @@ grep -r "from src" *.py tests/
 - **Never mix reorganization with logic changes** — reorganize first, then modify behavior in a separate commit
 - **Move one file at a time** — move, update imports, verify tests, repeat
 - **All source files belong in `project_name/`** — no loose `.py` files at project root
+- **Only move existing files** — do not create new `.py` modules inside `project_name/` that did not exist before; the goal is to separate code from project infrastructure, not to introduce new structure
 - **No generic module names** — `utils.py`, `helpers.py`, `common.py` must be renamed to domain-specific names
 - **No sub-packages for single files** — flatten inside `project_name/` instead
 - **Entry point must be thin** — ≤50 lines, CLI parsing + delegation only
@@ -444,7 +466,7 @@ def fixtures_dir() -> Path:
 
 ---
 
-#### Scenario 10: Migrate from Flat Root to project_name/ Package
+#### Scenario 9: Migrate from Flat Root to project_name/ Package
 
 **Symptom**: Python source files scattered at the project root alongside `Makefile`, `README.md`, `pyproject.toml`.
 
@@ -536,7 +558,7 @@ make typecheck
 
 ---
 
-#### Scenario 9: Migrate requirements.txt to pyproject.toml
+#### Scenario 10: Migrate requirements.txt to pyproject.toml
 
 **Symptom**: Project uses `requirements.txt` for dependencies instead of `pyproject.toml`.
 
@@ -572,6 +594,88 @@ make test
 ---
 
 ## Creating from Scratch
+
+### Steps
+
+1. **Determine `project_name`** — replace hyphens with underscores: `my-project` → `my_project`
+
+2. **Create directories and package**:
+```bash
+mkdir -p project_name make tests
+touch project_name/__init__.py
+```
+
+3. **Create entry point `project_name/cli.py`**:
+```python
+"""Command-line interface for project-name."""
+import argparse
+import sys
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="What this tool does")
+    parser.add_argument("input", help="Input value")
+    args = parser.parse_args()
+
+    print(args.input)
+
+
+if __name__ == "__main__":
+    main()
+```
+
+4. **Create `pyproject.toml`** at root:
+```toml
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "project-name"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+project-name = "project_name.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["project_name*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+[tool.ruff]
+src = ["."]
+```
+
+5. **Create virtualenv and install**:
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -e ".[dev]"
+```
+
+6. **Create `make/test.sh`**:
+```bash
+cat > make/test.sh <<'EOF'
+#!/bin/bash
+set -euo pipefail
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT_DIR"
+.venv/bin/pytest -v
+EOF
+chmod +x make/test.sh
+```
+
+7. **Create root Makefile** (see ## Canonical Layout for full template)
+
+8. **Verify**:
+```bash
+.venv/bin/python -m project_name.cli --help
+```
+
+---
 
 ### Project Layout
 
@@ -791,14 +895,14 @@ project-name --help
 
 ## Canonical Layout
 
-Source files live directly at the project root, the virtual environment stays as `.venv`, and `pyproject.toml` defines the project.
+All source files live inside `project_name/`. The virtual environment stays as `.venv` at the project root. `pyproject.toml` defines the project.
 
 **Key principles**:
-- `.venv` is always at the project root — a sibling of the source files
+- `.venv` is always at the project root — a sibling of `project_name/`
 - `pyproject.toml` is the single source of truth for metadata and dependencies
-- Source files live directly at the project root — sub-packages only when a true module is needed
+- All source files live inside `project_name/` — no loose `.py` files at the project root
 - The main entry point can be named anything (`main.py`, `fetcher.py`, `cli.py`, etc.) — use a domain-specific name, not necessarily `main.py`
-- Applications are run with `python -m <module>` using `.venv/bin/python`
+- Applications are run with `python -m <package>.<module>` using `.venv/bin/python`
 - Python version: **3.12**
 
 ### Standard Project Layout

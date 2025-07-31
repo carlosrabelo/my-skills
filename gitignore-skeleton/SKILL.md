@@ -1,6 +1,6 @@
 ---
 name: gitignore-skeleton
-description: Standard .gitignore structure (AI Tools section first, Secrets, project-type, Editors, OS). Creates from scratch or updates existing files.
+description: Standard .gitignore structure (Secrets, project-type, Editors, OS). Creates from scratch or updates existing files.
 mode: agent
 category: git
 shared: true
@@ -42,61 +42,20 @@ Before starting, determine the context:
 - [ ] Note which scenarios apply
 
 **After:**
-- [ ] `# AI TOOLS` section present and at the top (Scenario 1)
-- [ ] `# SECRETS` section present with `.env` and credentials (Scenario 2)
-- [ ] Project-type section complete and accurate (Scenario 3)
-- [ ] Sections in priority order: AI TOOLS → SECRETS → Project → EDITORS → OS → EXCEPTIONS (Scenario 4)
-- [ ] `# EDITORS` and `# OS` sections present (Scenario 5)
-- [ ] All section headers use `====` banner format and ALL CAPS titles (Scenario 6)
-- [ ] `# EXCEPTIONS` section at the bottom if `.gitkeep` files need to be preserved (Scenario 3/Ansible)
+- [ ] `# SECRETS` section present with `.env` and credentials (Scenario 1)
+- [ ] Project-type section complete and accurate (Scenario 2)
+- [ ] Sections in priority order: SECRETS → Project → EDITORS → OS → EXCEPTIONS (Scenario 3)
+- [ ] `# EDITORS` and `# OS` sections present (Scenario 4)
+- [ ] All section headers use `====` banner format and ALL CAPS titles (Scenario 5)
+- [ ] `# EXCEPTIONS` section at the bottom if `.gitkeep` files need to be preserved (Scenario 2/Ansible)
 
 ### Migration Scenarios
 
-#### Scenario 1: Missing AI Tools Section
-
-**When**: The `.gitignore` has no `# AI TOOLS` section.
-
-This is the most common gap. AI tool artifacts are never committed by default but have no standard way to enter the repo unless explicitly blocked.
-
-**Add at the very top** (before everything else):
-
-```gitignore
-# ============================================================================
-# AI TOOLS
-# ============================================================================
-
-# Directories
-.claude/
-.gemini/
-.antigravity/
-.opencode/
-.cursor/
-.aider/
-
-# Files
-CLAUDE.md
-CLAUDE.local.md
-GEMINI.md
-opencode.json
-.aider.conf.yml
-AGENTS.md
-.nexor/
-```
-
-If the project intentionally commits `CLAUDE.md` or `GEMINI.md` (e.g., a tools or skills repo), add a negation immediately after the block:
-
-```gitignore
-# Exceptions — preserve these
-!CLAUDE.md
-```
-
----
-
-#### Scenario 2: Missing Secrets Section
+#### Scenario 1: Missing Secrets Section
 
 **When**: The `.gitignore` does not ignore `.env` or credential files.
 
-**Add after the AI TOOLS section**:
+**Add at the very top**:
 
 ```gitignore
 # ============================================================================
@@ -119,7 +78,7 @@ If `.env.example` should also be ignored (no template needed), remove the `!.env
 
 ---
 
-#### Scenario 3: Missing or Incomplete Project-Type Section
+#### Scenario 2: Missing or Incomplete Project-Type Section
 
 **When**: The `.gitignore` is missing entries for the detected stack, or has only partial coverage.
 
@@ -221,14 +180,13 @@ If the project has `inventory/` or `group_vars/` directories with `.gitkeep` fil
 
 ---
 
-#### Scenario 4: Sections Out of Priority Order
+#### Scenario 3: Sections Out of Priority Order
 
 **When**: The existing sections exist but are not in the correct order.
 
 **Correct order** (top = highest priority):
 
 ```
-# AI TOOLS
 # SECRETS
 # [GO | PYTHON | NODE | ANSIBLE | other project-type]
 # EDITORS
@@ -243,7 +201,7 @@ Steps:
 
 ---
 
-#### Scenario 5: Missing Editors or OS Sections
+#### Scenario 4: Missing Editors or OS Sections
 
 **When**: The `.gitignore` ignores project files but has no entries for editor artifacts or OS files.
 
@@ -279,7 +237,7 @@ Thumbs.db
 
 ---
 
-#### Scenario 6: Missing Banner Format or Lowercase Section Titles
+#### Scenario 5: Missing Banner Format or Lowercase Section Titles
 
 **When**: Section headers use plain `# Name` comments instead of the `====` banner format, or titles are not ALL CAPS.
 
@@ -301,11 +259,10 @@ Also convert entries to use `# Directories` / `# Files` subsections within each 
 
 ### Migration Rules
 
-- **AI TOOLS section is always first** — never reorder it below any other section.
 - **Preserve all existing entries** — migration adds and reorders; it does not remove entries unless they are duplicates or clearly wrong.
 - **One blank line between sections** — consistent formatting makes the file scannable.
 - **Do not add project-type sections that don't apply** — a Go project does not need `node_modules/`.
-- **Section titles are ALL CAPS** — `# AI TOOLS`, `# SECRETS`, `# GO`, `# EDITORS`, `# OS`, `# EXCEPTIONS`.
+- **Section titles are ALL CAPS** — `# SECRETS`, `# GO`, `# EDITORS`, `# OS`, `# EXCEPTIONS`.
 - **Every section uses the `====` banner format** — no plain `# Name` headers.
 
 ---
@@ -314,7 +271,7 @@ Also convert entries to use `# Directories` / `# Files` subsections within each 
 
 Every project needs a `.gitignore`. The order of sections reflects priority — the most critical entries come first so they are never accidentally removed or overlooked during edits.
 
-**Key principle**: The AI TOOLS section is always present and always first, regardless of project type. AI config files, credentials, and local state must never be committed.
+**Key principle**: SECRETS is always present and always first. Credentials and local state must never be committed.
 
 Write the file using the sections defined in ## Canonical .gitignore Format below, selecting the project-type section that matches the detected stack.
 
@@ -325,8 +282,7 @@ Write the file using the sections defined in ## Canonical .gitignore Format belo
 Sections in priority order (top = highest priority):
 
 ```
-# AI TOOLS          ← always first, always present
-# SECRETS           ← always present
+# SECRETS           ← always first, always present
 # [Project type]    ← GO | PYTHON | NODE | ANSIBLE | other
 # EDITORS           ← always present
 # OS                ← always present
@@ -341,62 +297,7 @@ Sections in priority order (top = highest priority):
 - One blank line between the banner and the first subsection.
 - One blank line between the last entry of one section and the banner of the next.
 
-### Section 1 — AI TOOLS (mandatory, always first)
-
-Blocks config files, local state, and instruction files generated by or used exclusively by AI coding assistants. These must not be committed to any repository.
-
-```gitignore
-# ============================================================================
-# AI TOOLS
-# ============================================================================
-
-# Directories
-.claude/
-.gemini/
-.antigravity/
-.opencode/
-.cursor/
-.aider/
-
-# Files
-CLAUDE.md
-CLAUDE.local.md
-GEMINI.md
-opencode.json
-.aider.conf.yml
-AGENTS.md
-.nexor/
-```
-
-**Exception**: If the project intentionally ships `CLAUDE.md` or `GEMINI.md` as checked-in instructions (e.g., a skills/tools repo), add a negation after the block:
-
-```gitignore
-# ============================================================================
-# AI TOOLS
-# ============================================================================
-
-# Directories
-.claude/
-.gemini/
-.antigravity/
-.opencode/
-.cursor/
-.aider/
-
-# Files
-CLAUDE.md
-CLAUDE.local.md
-GEMINI.md
-opencode.json
-.aider.conf.yml
-AGENTS.md
-.nexor/
-
-# Exceptions — preserve project instruction file
-!CLAUDE.md
-```
-
-### Section 2 — SECRETS (mandatory)
+### Section 1 — SECRETS (mandatory, always first)
 
 ```gitignore
 # ============================================================================
@@ -417,7 +318,7 @@ credentials.json
 
 The `!.env.example` negation keeps the example file in version control so contributors can bootstrap their environment.
 
-### Section 3 — Project Type (pick one or combine)
+### Section 2 — Project Type (pick one or combine)
 
 **GO**
 
@@ -501,7 +402,7 @@ ansible.log
 
 Detect Ansible projects by presence of `site.yml`, `playbook*.yml`, `ansible.cfg`, or a `roles/` directory.
 
-### Section 4 — EDITORS (mandatory)
+### Section 3 — EDITORS (mandatory)
 
 ```gitignore
 # ============================================================================
@@ -519,7 +420,7 @@ Detect Ansible projects by presence of `site.yml`, `playbook*.yml`, `ansible.cfg
 *.swo
 ```
 
-### Section 5 — OS (mandatory)
+### Section 4 — OS (mandatory)
 
 ```gitignore
 # ============================================================================
@@ -531,7 +432,7 @@ Detect Ansible projects by presence of `site.yml`, `playbook*.yml`, `ansible.cfg
 Thumbs.db
 ```
 
-### Section 6 — EXCEPTIONS (optional, always last)
+### Section 5 — EXCEPTIONS (optional, always last)
 
 Use when a section above blocks an entire directory but a placeholder file inside must be preserved (e.g., `.gitkeep` to track an otherwise-empty directory in version control).
 
@@ -555,27 +456,6 @@ Use when a section above blocks an entire directory but a placeholder file insid
 **Go Project**
 
 ```gitignore
-# ============================================================================
-# AI TOOLS
-# ============================================================================
-
-# Directories
-.claude/
-.gemini/
-.antigravity/
-.opencode/
-.cursor/
-.aider/
-
-# Files
-CLAUDE.md
-CLAUDE.local.md
-GEMINI.md
-opencode.json
-.aider.conf.yml
-AGENTS.md
-.nexor/
-
 # ============================================================================
 # SECRETS
 # ============================================================================
@@ -629,27 +509,6 @@ Thumbs.db
 **Python Project**
 
 ```gitignore
-# ============================================================================
-# AI TOOLS
-# ============================================================================
-
-# Directories
-.claude/
-.gemini/
-.antigravity/
-.opencode/
-.cursor/
-.aider/
-
-# Files
-CLAUDE.md
-CLAUDE.local.md
-GEMINI.md
-opencode.json
-.aider.conf.yml
-AGENTS.md
-.nexor/
-
 # ============================================================================
 # SECRETS
 # ============================================================================
@@ -715,27 +574,6 @@ Thumbs.db
 **Ansible Project**
 
 ```gitignore
-# ============================================================================
-# AI TOOLS
-# ============================================================================
-
-# Directories
-.claude/
-.gemini/
-.antigravity/
-.opencode/
-.cursor/
-.aider/
-
-# Files
-CLAUDE.md
-CLAUDE.local.md
-GEMINI.md
-opencode.json
-.aider.conf.yml
-AGENTS.md
-.nexor/
-
 # ============================================================================
 # SECRETS
 # ============================================================================
@@ -804,10 +642,6 @@ Note: Ansible projects use `vault.yml` and `*.vault` for encrypted secrets — a
 
 ## Anti-Patterns
 
-- **Missing AI TOOLS section** — AI config files land in version control silently. Always include it first.
-
-- **AI TOOLS section not first** — prioritize it at the top so it survives future edits.
-
 - **Plain `# Name` section headers** — always use the `====` banner format with ALL CAPS title.
 
 - **No Directories/Files subsections** — entries without grouping are harder to scan; always split into `# Directories` and `# Files`.
@@ -824,11 +658,11 @@ Note: Ansible projects use `vault.yml` and `*.vault` for encrypted secrets — a
 
 ## Monorepo
 
-In a monorepo the AI TOOLS, SECRETS, EDITORS and OS sections live **only in the root `.gitignore`**. Each component has its own `.gitignore` containing only its project-type section. This avoids duplicating boilerplate in every component.
+In a monorepo the SECRETS, EDITORS and OS sections live **only in the root `.gitignore`**. Each component has its own `.gitignore` containing only its project-type section. This avoids duplicating boilerplate in every component.
 
 ```
 monorepo/
-├── .gitignore          ← AI TOOLS + SECRETS + EDITORS + OS
+├── .gitignore          ← SECRETS + EDITORS + OS
 ├── api-server/
 │   └── .gitignore      ← GO only
 ├── pipeline/
@@ -842,27 +676,6 @@ monorepo/
 Contains all shared sections. No project-type section — those belong in components.
 
 ```gitignore
-# ============================================================================
-# AI TOOLS
-# ============================================================================
-
-# Directories
-.claude/
-.gemini/
-.antigravity/
-.opencode/
-.cursor/
-.aider/
-
-# Files
-CLAUDE.md
-CLAUDE.local.md
-GEMINI.md
-opencode.json
-.aider.conf.yml
-AGENTS.md
-.nexor/
-
 # ============================================================================
 # SECRETS
 # ============================================================================
@@ -980,9 +793,9 @@ ansible.log
 
 When a monorepo has a root `.gitignore` that doesn't follow this pattern:
 
-- [ ] Root `.gitignore` has AI TOOLS, SECRETS, EDITORS, OS — no project-type sections
+- [ ] Root `.gitignore` has SECRETS, EDITORS, OS — no project-type sections
 - [ ] Each component has its own `.gitignore` with only its project-type section
-- [ ] No duplicate AI TOOLS or SECRETS blocks inside components
+- [ ] No duplicate SECRETS blocks inside components
 - [ ] All section headers use `====` banner format and ALL CAPS titles
 
 ---

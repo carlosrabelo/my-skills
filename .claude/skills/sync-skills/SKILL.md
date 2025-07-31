@@ -1,6 +1,6 @@
 ---
 name: sync-skills
-description: Copies all skills from the current project to ~/.claude/skills/, ~/.config/opencode/skills/, ~/.gemini/skills/, ~/.gemini/antigravity/skills/, and ~/.qwen/scripts/, excluding itself. Run this whenever skills are added or updated in the project.
+description: Copies all skills from the current project to ~/.claude/skills/, ~/.config/opencode/skills/, ~/.gemini/skills/, ~/.gemini/antigravity/skills/, and ~/.qwen/skills/, excluding itself. Skips destinations that do not exist. Run this whenever skills are added or updated in the project.
 mode: manual
 category: meta
 shared: false
@@ -10,7 +10,7 @@ shared: false
 
 Execute the bash block in `## Execute` immediately. Do not ask for confirmation, do not summarize the plan — just run it and report the results.
 
-Copy all public skills from this project to the five global destinations.
+Copy all public skills from this project to the five global destinations. Destinations that do not already exist are skipped — the script never creates them.
 
 ## What Gets Synced
 
@@ -68,10 +68,10 @@ monorepo-project-migrate
 
 1. Determine the project root: go up two levels from this file (`../../` → git repo root).
 2. Determine the five destinations listed above.
-3. Create all destination directories if they don't exist.
-4. Remove all obsolete skill directories from every destination.
-5. For each root-level directory that contains a `SKILL.md` (excluding `sync-skills`), copy it to all five destinations.
-6. Report which skills were copied and which (if any) were skipped.
+3. For each destination, check if the directory already exists — skip it if not.
+4. Remove all obsolete skill directories from existing destinations.
+5. For each root-level directory that contains a `SKILL.md` (excluding `sync-skills`), copy it to all existing destinations.
+6. Report which skills were copied and which destinations were skipped.
 
 ## Execute
 
@@ -82,7 +82,21 @@ DEST_OPENCODE="$HOME/.config/opencode/skills"
 DEST_GEMINI="$HOME/.gemini/skills"
 DEST_ANTIGRAVITY="$HOME/.gemini/antigravity/skills"
 DEST_QWEN="$HOME/.qwen/skills"
-mkdir -p "$DEST_CLAUDE" "$DEST_OPENCODE" "$DEST_GEMINI" "$DEST_ANTIGRAVITY" "$DEST_QWEN"
+
+ALL_DESTS=("$DEST_CLAUDE" "$DEST_OPENCODE" "$DEST_GEMINI" "$DEST_ANTIGRAVITY" "$DEST_QWEN")
+ACTIVE_DESTS=()
+for dest in "${ALL_DESTS[@]}"; do
+  if [ -d "$dest" ]; then
+    ACTIVE_DESTS+=("$dest")
+  else
+    echo "- skipped (not found): $dest"
+  fi
+done
+
+if [ ${#ACTIVE_DESTS[@]} -eq 0 ]; then
+  echo "No destinations found. Nothing to sync."
+  exit 0
+fi
 
 OBSOLETE=(
   go-project go-project-create go-project-migrate
@@ -94,7 +108,7 @@ OBSOLETE=(
 )
 
 for name in "${OBSOLETE[@]}"; do
-  for dest in "$DEST_CLAUDE" "$DEST_OPENCODE" "$DEST_GEMINI" "$DEST_ANTIGRAVITY" "$DEST_QWEN"; do
+  for dest in "${ACTIVE_DESTS[@]}"; do
     if [ -d "$dest/$name" ]; then
       rm -rf "$dest/$name"
       echo "✗ removed obsolete: $name (from $dest)"
@@ -105,7 +119,7 @@ done
 for skill in "$PROJECT_ROOT"/*/; do
   name=$(basename "$skill")
   if [ "$name" != "sync-skills" ] && [ -f "$skill/SKILL.md" ]; then
-    for dest in "$DEST_CLAUDE" "$DEST_OPENCODE" "$DEST_GEMINI" "$DEST_ANTIGRAVITY" "$DEST_QWEN"; do
+    for dest in "${ACTIVE_DESTS[@]}"; do
       rm -rf "$dest/$name"
       cp -r "$skill" "$dest/$name"
     done
@@ -117,6 +131,7 @@ done
 ## Notes
 
 - Safe to run multiple times — overwrites with the latest version each time.
+- Destinations that do not exist are silently skipped — the script never creates them.
 - Does **not** copy `.claude/agents/` or `.claude/commands/` — they are project-local infrastructure.
 - Does **not** delete unrelated skills already present in the destinations.
 
