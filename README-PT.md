@@ -91,7 +91,7 @@ cd my-skills
 
 Em seguida, execute o fluxo **sync-skills** a partir deste repositório (por exemplo `/sync-skills` no Claude Code, ou o bloco bash em `.claude/skills/sync-skills/SKILL.md` / `.cursor/skills/sync-skills/SKILL.md`).
 
-Isso copia cada skill **pública** (diretórios na raiz com `SKILL.md`) para cada destino **existente**: `~/.claude/skills/`, `~/.config/opencode/skills/`, `~/.gemini/skills/`, `~/.gemini/antigravity/skills/`, `~/.qwen/skills/` e `~/.cursor/skills/`.
+Isso copia cada skill **pública** (diretórios na raiz com `SKILL.md`) para cada destino **existente**: `~/.claude/skills/`, `~/.config/opencode/skills/`, `~/.gemini/skills/`, `~/.gemini/antigravity/skills/`, `~/.qwen/skills/` e `~/.cursor/skills/`. Se `~/.cursor/` existir mas `~/.cursor/skills/` não, o sync-skills cria essa pasta primeiro; outros destinos em falta são ignorados.
 
 ### Instalação manual
 

@@ -1,6 +1,6 @@
 ---
 name: sync-skills
-description: Copies all skills from the current project to ~/.claude/skills/, ~/.config/opencode/skills/, ~/.gemini/skills/, ~/.gemini/antigravity/skills/, ~/.qwen/skills/, and ~/.cursor/skills/, excluding itself. Skips destinations that do not exist. Run this whenever skills are added or updated in the project.
+description: Copies all skills from the current project to ~/.claude/skills/, ~/.config/opencode/skills/, ~/.gemini/skills/, ~/.gemini/antigravity/skills/, ~/.qwen/skills/, and ~/.cursor/skills/, excluding itself. Skips destinations that do not exist, except it creates ~/.cursor/skills when ~/.cursor exists. Run this whenever skills are added or updated in the project.
 disable-model-invocation: true
 mode: manual
 category: meta
@@ -11,7 +11,7 @@ shared: false
 
 Execute the bash block in `## Execute` immediately. Do not ask for confirmation, do not summarize the plan — just run it and report the results.
 
-Copy all public skills from this project to the six global destinations. Destinations that do not already exist are skipped — the script never creates them.
+Copy all public skills from this project to the six global destinations. Destinations that do not already exist are skipped, except **`~/.cursor/skills`**: if `~/.cursor` exists and `~/.cursor/skills` does not, the script creates it with `mkdir -p` (Cursor is usually installed but Agent Skills dir may be missing). No other destination directories are created.
 
 ## What Gets Synced
 
@@ -72,7 +72,7 @@ monorepo-project-migrate
 
 1. Determine the project root: `git rev-parse --show-toplevel` from this skill’s directory or the current working directory.
 2. Determine the six destinations listed above.
-3. For each destination, check if the directory already exists — skip it if not.
+3. Ensure `~/.cursor/skills` exists when `~/.cursor` exists (create if missing). For each destination, check if the directory already exists — skip it if not.
 4. Remove all obsolete skill directories from existing destinations.
 5. For each root-level directory that contains a `SKILL.md` (excluding `sync-skills`), copy it to all existing destinations.
 6. Report which skills were copied and which destinations were skipped.
@@ -89,6 +89,11 @@ DEST_GEMINI="$HOME/.gemini/skills"
 DEST_ANTIGRAVITY="$HOME/.gemini/antigravity/skills"
 DEST_QWEN="$HOME/.qwen/skills"
 DEST_CURSOR="$HOME/.cursor/skills"
+
+if [ -d "$HOME/.cursor" ] && [ ! -d "$DEST_CURSOR" ]; then
+  mkdir -p "$DEST_CURSOR"
+  echo "+ created: $DEST_CURSOR"
+fi
 
 ALL_DESTS=("$DEST_CLAUDE" "$DEST_OPENCODE" "$DEST_GEMINI" "$DEST_ANTIGRAVITY" "$DEST_QWEN" "$DEST_CURSOR")
 ACTIVE_DESTS=()
@@ -138,7 +143,7 @@ done
 ## Notes
 
 - Safe to run multiple times — overwrites with the latest version each time.
-- Destinations that do not exist are silently skipped — the script never creates them.
+- Destinations that do not exist are silently skipped — the script does not create them, except `~/.cursor/skills` when `~/.cursor` exists (see `## Execute`).
 - Does **not** copy `.claude/agents/` or `.claude/commands/` — they are project-local infrastructure.
 - Does **not** delete unrelated skills already present in the destinations.
 

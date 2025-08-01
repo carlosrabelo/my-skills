@@ -91,7 +91,7 @@ cd my-skills
 
 Then run the **sync-skills** workflow from this repo (for example `/sync-skills` in Claude Code, or execute the bash block in `.claude/skills/sync-skills/SKILL.md` / `.cursor/skills/sync-skills/SKILL.md`).
 
-That copies every **public** skill (root-level directories with `SKILL.md`) into each **existing** destination: `~/.claude/skills/`, `~/.config/opencode/skills/`, `~/.gemini/skills/`, `~/.gemini/antigravity/skills/`, `~/.qwen/skills/`, and `~/.cursor/skills/`.
+That copies every **public** skill (root-level directories with `SKILL.md`) into each **existing** destination: `~/.claude/skills/`, `~/.config/opencode/skills/`, `~/.gemini/skills/`, `~/.gemini/antigravity/skills/`, `~/.qwen/skills/`, and `~/.cursor/skills/`. If `~/.cursor/` exists but `~/.cursor/skills/` does not, sync-skills creates that folder first; other missing destinations are skipped.
 
 ### Manual installation
 
