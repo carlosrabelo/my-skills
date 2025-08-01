@@ -7,7 +7,7 @@ Create a new skill named **$ARGUMENTS** in the project root.
 
 ## Current skills (to avoid name collisions)
 
-!`ls -d /home/carlos/Sources/11/my-skills/*/ 2>/dev/null | xargs -I{} basename {} | sort`
+!`cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)" && ls -d */ 2>/dev/null | xargs -n1 basename | sort`
 
 ## Steps
 
@@ -21,7 +21,7 @@ Create a new skill named **$ARGUMENTS** in the project root.
 ```
 ---
 name: $ARGUMENTS
-description: TODO — rich description with trigger keywords
+description: TODO — rich description with trigger keywords (max 1024 chars for Cursor)
 mode: agent
 category: tooling
 shared: true
@@ -46,8 +46,9 @@ TODO: Describe how to detect create vs migrate flow (if applicable).
 
 ## After creating, remind the user to
 
-- Fill `description` with keyword-rich text (this drives automatic trigger)
+- Fill `description` with keyword-rich text (this drives automatic trigger); keep it **≤ 1024 characters** (Cursor Agent Skills limit)
 - Set the correct `category`: `git | go | python | tooling | documentation | project | github | meta`
 - Set `mode` to `agent` (LLM runs the skill) or `manual` (human invokes explicitly)
+- **Cursor alignment:** for `mode: manual`, add `disable-model-invocation: true` to the frontmatter; for `mode: agent`, omit `disable-model-invocation` so the agent can auto-invoke from context
 - Add real entries to `## Related Skills`
 - Run `/audit` to validate the new file

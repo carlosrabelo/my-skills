@@ -1,6 +1,7 @@
 ---
 name: audit-skills
 description: Audit all SKILL.md files in this repository for structural deviations and apply auto-fixable corrections.
+disable-model-invocation: true
 mode: manual
 category: meta
 shared: false
@@ -13,18 +14,20 @@ Read every public SKILL.md in this repository, check it against the structural r
 ## Scope
 
 - Audit target: all `*/SKILL.md` files at the **project root** (one level deep, glob `<root>/*/SKILL.md`)
-- Exclude: `.claude/skills/` — internal skills are not in scope
-- Determine the project root with `git rev-parse --show-toplevel`
+- Exclude: `.claude/skills/` and `.cursor/skills/` — internal skills are not in scope
+- Determine the project root with `git rev-parse --show-toplevel` (from the repo root or any subdirectory)
 
 ## Checks
 
-Run all six checks on every file. Record findings keyed by the IDs below.
+Run all checks on every file. Record findings keyed by the IDs below.
 
 | ID         | Rule |
 |------------|------|
 | FM-FIELDS  | All five frontmatter fields present: `name`, `description`, `mode`, `category`, `shared` |
 | FM-NAME    | `name` value matches the parent directory name exactly |
 | FM-VALUES  | `mode` ∈ {agent, manual} · `category` ∈ {git, go, python, tooling, documentation, project, github, meta} · `shared` is a boolean |
+| DESC-LEN   | `description` is at most **1024** characters (Cursor Agent Skills) |
+| DMI        | `mode: manual` requires `disable-model-invocation: true`; `mode: agent` requires **`disable-model-invocation` absent** (do not set `true`) |
 | CHANGELOG  | No `## Changelog` section exists anywhere in the file |
 | RELATED    | File contains a `## Related Skills` section |
 | LANG       | All content (headings and body) is in English — use contextual judgment, not mechanical word-matching |
@@ -37,12 +40,13 @@ Apply the following fixes automatically, without asking for confirmation:
 
 - **CHANGELOG** — Remove the `## Changelog` heading and all content under it until the next `##` heading or end of file. Reason: prohibited by project rules.
 - **FM-NAME** — Correct the `name` field to match the directory name.
+- **DMI** — If `mode: manual` and `disable-model-invocation` is missing or not `true`, set `disable-model-invocation: true` in the frontmatter (after `description` or with other optional keys). If `mode: agent` and `disable-model-invocation: true` is present, remove the `disable-model-invocation` line from frontmatter.
 - **RELATED** — If `## Related Skills` is absent, append this stub at the end of the file:
 
   ```
   ## Related Skills
 
-  - **sync-skills** — Run after changes to propagate corrected skills to all destinations.
+  - **sync-skills** — Run after changes to propagate corrected skills to all destinations (including ~/.cursor/skills/).
   ```
 
 Do **not** auto-fix the following — report only:
@@ -50,14 +54,15 @@ Do **not** auto-fix the following — report only:
 - Missing frontmatter fields (cannot infer correct values)
 - Invalid `mode` or `category` values (requires human decision)
 - Content in Portuguese (requires human translation)
+- **DESC-LEN** when over 1024 characters (requires human editing)
 
 ## Steps
 
 1. Determine the project root: `git rev-parse --show-toplevel`.
-2. Collect all `*/SKILL.md` at the project root (exclude `.claude/`).
-3. For each file, run all six checks and record findings.
+2. Collect all `*/SKILL.md` at the project root (exclude `.claude/` and `.cursor/` subtrees).
+3. For each file, run all checks and record findings.
 4. Print the full audit report (see format below).
-5. Apply all auto-fixes in order: CHANGELOG removal → FM-NAME correction → RELATED stub.
+5. Apply all auto-fixes in order: CHANGELOG removal → FM-NAME correction → DMI alignment → RELATED stub.
 6. Print a summary line.
 7. Do **not** commit — the user commits manually.
 
@@ -87,8 +92,8 @@ SUMMARY: 15 audited | 12 clean | 3 issues | 3 auto-fixed | 0 need manual attenti
 
 - Safe to run multiple times — idempotent.
 - Does not commit changes — the user commits manually.
-- Skips `.claude/skills/` — internal skills are not audited.
+- Skips `.claude/skills/` and `.cursor/skills/` — internal skills are not audited.
 
 ## Related Skills
 
-- **sync-skills** — Run after auditing and fixing to propagate corrected skills to all destinations.
+- **sync-skills** — Run after auditing and fixing to propagate corrected skills to all destinations (including ~/.cursor/skills/).

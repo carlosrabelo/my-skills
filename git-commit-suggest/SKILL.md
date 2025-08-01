@@ -1,6 +1,7 @@
 ---
 name: git-commit-suggest
 description: Manually invoked to suggest git add and git commit commands with Conventional Commits formatting.
+disable-model-invocation: true
 mode: manual
 category: git
 shared: true

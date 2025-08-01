@@ -1,6 +1,7 @@
 ---
 name: check-sync
-description: Compare public skills in the source repo against all five sync destinations and report drift. Shows OK, DRIFT, or MISSING per skill per destination.
+description: Compare public skills in the source repo against all six sync destinations and report drift. Shows OK, DRIFT, or MISSING per skill per destination.
+disable-model-invocation: true
 mode: manual
 category: meta
 shared: false
@@ -10,7 +11,7 @@ shared: false
 
 Execute the bash block in `## Execute` immediately. Do not ask for confirmation, do not summarize the plan — just run it and report the results.
 
-Compare each public skill in the source repo against all five sync destinations and report their sync status.
+Compare each public skill in the source repo against all six sync destinations and report their sync status.
 
 ## Status Codes
 
@@ -23,17 +24,20 @@ Compare each public skill in the source repo against all five sync destinations 
 ## Scope
 
 - **Source**: root-level directories containing a `SKILL.md` (excludes `.claude/`)
-- **Destinations**: same five targets as `sync-skills`
+- **Destinations**: same six targets as `sync-skills`
 
 ## Execute
 
 ```bash
-PROJECT_ROOT="$(git -C "$(dirname "$0")" rev-parse --show-toplevel 2>/dev/null || echo '/home/carlos/Sources/11/my-skills')"
+PROJECT_ROOT="$(git -C "$(dirname "$0")" rev-parse --show-toplevel 2>/dev/null)"
+[ -z "$PROJECT_ROOT" ] && PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+[ -z "$PROJECT_ROOT" ] && PROJECT_ROOT="/home/carlos/Sources/11/my-skills"
 DEST_CLAUDE="$HOME/.claude/skills"
 DEST_OPENCODE="$HOME/.config/opencode/skills"
 DEST_GEMINI="$HOME/.gemini/skills"
 DEST_ANTIGRAVITY="$HOME/.gemini/antigravity/skills"
 DEST_QWEN="$HOME/.qwen/skills"
+DEST_CURSOR="$HOME/.cursor/skills"
 
 issues=()
 total=0
@@ -50,7 +54,7 @@ for skill in "$PROJECT_ROOT"/*/; do
   statuses=()
   skill_issues=()
 
-  for dest_pair in "claude:$DEST_CLAUDE" "opencode:$DEST_OPENCODE" "gemini:$DEST_GEMINI" "antigravity:$DEST_ANTIGRAVITY" "qwen:$DEST_QWEN"; do
+  for dest_pair in "claude:$DEST_CLAUDE" "opencode:$DEST_OPENCODE" "gemini:$DEST_GEMINI" "antigravity:$DEST_ANTIGRAVITY" "qwen:$DEST_QWEN" "cursor:$DEST_CURSOR"; do
     dest_name="${dest_pair%%:*}"
     dest_path="${dest_pair#*:}"
 
@@ -87,7 +91,7 @@ fi
 ## Notes
 
 - Safe to run multiple times — read-only, makes no changes.
-- Does not check skills inside `.claude/skills/` (internal skills are not synced).
+- Does not check skills inside `.claude/skills/` or `.cursor/skills/` (internal skills are not synced).
 - DRIFT is detected via `diff -rq` (recursive content comparison).
 
 ## Related Skills

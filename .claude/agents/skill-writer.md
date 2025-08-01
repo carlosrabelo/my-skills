@@ -25,12 +25,19 @@ Each skill lives at `<name>/SKILL.md` — never inside `.claude/`.
 ```yaml
 ---
 name: <directory-name>       # must match the dirname exactly
-description: <rich keywords> # used for automatic triggering
+description: <rich keywords> # used for automatic triggering; max 1024 chars (Cursor)
 mode: agent | manual
 category: git | go | python | tooling | documentation | project | github | meta
 shared: true | false
+# If mode is manual, add (Cursor): disable-model-invocation: true
 ---
 ```
+
+## Cursor Agent Skills
+
+- Personal/global install target for this repo’s public skills is `~/.cursor/skills/` after **sync-skills** (never author under `~/.cursor/skills-cursor/`, which is reserved).
+- **`description`**: non-empty, **≤ 1024 characters**.
+- **`disable-model-invocation`**: use `true` when `mode: manual` (explicit invocation only). When `mode: agent`, **omit** this key so the agent can load the skill from ambient context.
 
 ## Structural Rules
 
@@ -54,6 +61,7 @@ description: <rich trigger keywords>
 mode: agent
 category: tooling
 shared: true
+# Omit disable-model-invocation for agent mode (Cursor auto-invocation).
 ---
 
 # Skill Title
@@ -122,4 +130,4 @@ Rules for the migrate section:
 1. Check whether the directory already exists using `Glob`
 2. Create `<name>/SKILL.md` following the structure above, filled in
 3. **Never** create a `references/` directory or any external reference files
-4. Validate: `name` = dirname, no Changelog, has Related Skills, all content in English, under 500 lines
+4. Validate: `name` = dirname, no Changelog, has Related Skills, all content in English, under 500 lines, `description` ≤ 1024 chars, `disable-model-invocation: true` iff `mode: manual`

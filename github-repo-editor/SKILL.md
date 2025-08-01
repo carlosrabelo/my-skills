@@ -1,6 +1,7 @@
 ---
 name: github-repo-editor
 description: Analyze project code and generate a gh repo edit command with proper description and topics (max 350 chars, 3-5 topics). Returns copy-paste ready commands.
+disable-model-invocation: true
 mode: manual
 category: github
 shared: true

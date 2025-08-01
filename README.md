@@ -1,6 +1,6 @@
 # my-skills
 
-A personal library of reusable Claude Code skills for software development workflows.
+A personal library of reusable agent skills for software development workflows (Claude Code, Cursor, OpenCode, Gemini CLI, Antigravity, Qwen).
 
 ## Table of Contents
 
@@ -16,9 +16,11 @@ A personal library of reusable Claude Code skills for software development workf
 
 ## Overview
 
-This repository contains a curated set of [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skills that encode best practices for software development. Each skill is a detailed guide that Claude invokes during conversations to provide consistent, high-quality assistance across different tasks and projects.
+This repository contains a curated set of skills that encode best practices for software development. They are consumed by [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [Cursor Agent Skills](https://cursor.com/docs) (`~/.cursor/skills/`), and several other CLI agents. Each skill is a detailed guide the agent uses to provide consistent, high-quality assistance across different tasks and projects.
 
-Skills cover Go and Python project structure, Git workflows, code documentation, and GitHub tooling — acting as a shared knowledge base that can be dropped into any project via `sync-skills`.
+Skills cover Go and Python project structure, Git workflows, code documentation, and GitHub tooling — acting as a shared knowledge base that can be installed globally via **sync-skills** (six destinations; missing directories are skipped).
+
+**Note:** Do not install personal skills under `~/.cursor/skills-cursor/` — that path is reserved for Cursor-built-in skills.
 
 ## Skills
 
@@ -64,16 +66,19 @@ Skills cover Go and Python project structure, Git workflows, code documentation,
 
 | Skill | Mode | Description |
 |-------|------|-------------|
-| `sync-skills` | manual | Copy all skills from this repository to `~/.claude/skills/` for global use |
+| `sync-skills` | manual | Copy all public skills from this repository to every configured global skills directory (see [Installation](#installation)) |
 
 **Modes**:
-- `manual` — invoked explicitly by the user (e.g. `/git-commit-suggest`)
-- `agent` — invoked automatically by Claude when the trigger conditions are met
+- `manual` — invoked explicitly by the user (e.g. `/git-commit-suggest` in Claude Code)
+- `agent` — invoked automatically when the agent detects relevant context
 
 ## Prerequisites
 
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI installed
-- Skills directory at `~/.claude/skills/` (created automatically by Claude Code)
+- At least one target skills directory (the sync script **does not create** missing destinations):
+  - [Claude Code](https://docs.anthropic.com/en/docs/claude-code): `~/.claude/skills/`
+  - Cursor: `~/.cursor/skills/` (for global [Agent Skills](https://cursor.com/docs))
+  - OpenCode: `~/.config/opencode/skills/`
+  - Gemini / Antigravity / Qwen: `~/.gemini/skills/`, `~/.gemini/antigravity/skills/`, `~/.qwen/skills/`
 
 ## Installation
 
@@ -84,41 +89,32 @@ git clone https://github.com/carlosrabelo/my-skills
 cd my-skills
 ```
 
-Then, inside a Claude Code session in this directory, run:
+Then run the **sync-skills** workflow from this repo (for example `/sync-skills` in Claude Code, or execute the bash block in `.claude/skills/sync-skills/SKILL.md` / `.cursor/skills/sync-skills/SKILL.md`).
 
-```
-/sync-skills
-```
-
-This copies all skills to `~/.claude/skills/`, making them available in every project.
+That copies every **public** skill (root-level directories with `SKILL.md`) into each **existing** destination: `~/.claude/skills/`, `~/.config/opencode/skills/`, `~/.gemini/skills/`, `~/.gemini/antigravity/skills/`, `~/.qwen/skills/`, and `~/.cursor/skills/`.
 
 ### Manual installation
 
-To install a single skill manually:
+To install a single skill manually (example paths):
 
 ```bash
 cp -r git-commit-suggest ~/.claude/skills/
+cp -r git-commit-suggest ~/.cursor/skills/
 ```
 
 ## Usage
 
 ### Invoking a manual skill
 
-In any Claude Code session, type the skill name as a slash command:
-
-```
-/git-commit-suggest
-/github-repo-editor
-/sync-skills
-```
+In Claude Code, use slash commands (for example `/git-commit-suggest`). In Cursor, invoke the skill according to your Agent Skills UI or by naming the skill when it applies.
 
 ### Agent skills
 
-Agent skills are triggered automatically when Claude detects relevant context — for example, `go-skeleton` activates when you're working on a Go project and ask about organization.
+Agent skills load from context when the agent decides they match — for example, `go-skeleton` when organizing a Go project.
 
 ### Updating skills
 
-After modifying skills in this repository, re-run `/sync-skills` inside a Claude Code session to push the changes to `~/.claude/skills/`.
+After modifying skills in this repository, run **sync-skills** again so all existing destinations (including `~/.cursor/skills/`) receive the update.
 
 ## Project Structure
 
@@ -126,8 +122,15 @@ After modifying skills in this repository, re-run `/sync-skills` inside a Claude
 my-skills/
 ├── .claude/
 │   └── skills/
-│       └── sync-skills/        ← Internal meta-skill (not synced)
+│       ├── audit-skills/       ← Internal meta-skills (not synced globally)
+│       ├── check-sync/
+│       └── sync-skills/
 │           └── SKILL.md
+├── .cursor/
+│   └── skills/                 ← Mirror of .claude/skills/ for Cursor in this repo
+│       ├── audit-skills/
+│       ├── check-sync/
+│       └── sync-skills/
 ├── git-commit-suggest/
 │   └── SKILL.md
 ├── github-repo-editor/
@@ -165,10 +168,11 @@ Each skill lives in its own directory. Skills with a `references/` subdirectory 
 
 2. Create `my-new-skill/SKILL.md` with the skill definition. At minimum include:
    - Frontmatter with `name`, `description`, `category`, `mode`, `shared`
+   - For Cursor: `description` ≤ 1024 characters; add `disable-model-invocation: true` when `mode` is `manual`
    - An overview section explaining when to use the skill
    - Detailed instructions and examples
 
-3. Run `/sync-skills` in a Claude Code session to install it globally.
+3. Run **sync-skills** to install it into every configured global directory.
 
 ## Contributing
 
