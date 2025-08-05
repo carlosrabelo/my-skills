@@ -19,7 +19,7 @@ project-name/              ← root: infrastructure only
 ├── go.mod                 ← module definition
 ├── go.sum
 ├── Makefile               ← orchestration
-├── make/                  ← build/test/install scripts
+├── .make/                  ← build/test/install scripts
 ├── bin/                   ← compiled binaries (gitignored)
 ├── cfg/                   ← runtime config (optional)
 ├── docs/                  ← documentation (optional)
@@ -99,7 +99,7 @@ Before starting, determine the context:
 - [ ] All `.go` files inside `projectname/`
 - [ ] No `.go` files at project root
 - [ ] Single Makefile at root
-- [ ] `make/` scripts present and executable
+- [ ] `.make/` scripts present and executable
 - [ ] `projectname/cmd/appname/main.go` ≤ 50 lines
 - [ ] `bin/` in `.gitignore`
 - [ ] Commit with clear message
@@ -133,14 +133,14 @@ wc -l $(find . -name "main.go" -not -path "./vendor/*")
 
 #### Scenario 1: Migrate from src/ Layout
 
-**Symptom**: `go.mod` is inside `src/`, dual Makefiles, `make/` scripts use `cd "$ROOT_DIR/src"`.
+**Symptom**: `go.mod` is inside `src/`, dual Makefiles, `.make/` scripts use `cd "$ROOT_DIR/src"`.
 
 **Before**:
 ```
 project/
 ├── Makefile              ← Delegates with make -C src
 ├── bin/
-├── make/
+├── .make/
 │   └── build.sh          ← cd "$ROOT_DIR/src" && go build ...
 └── src/
     ├── Makefile           ← Second Makefile
@@ -198,7 +198,7 @@ lint:
 	go vet ./...
 ```
 
-7. **Update make/build.sh**:
+7. **Update .make/build.sh**:
 ```bash
 # Before: go build -o "$ROOT_DIR/bin/$BINARY_NAME" "./cmd/$BINARY_NAME"
 # After:
@@ -262,7 +262,7 @@ import "github.com/user/project/internal/processor"
 import "github.com/user/project/pkg/types"
 ```
 
-6. **Update Makefile and make/build.sh** (see ## Canonical Layout below)
+6. **Update Makefile and .make/build.sh** (see ## Canonical Layout below)
 
 7. **Verify**:
 ```bash
@@ -307,13 +307,13 @@ go build -o bin/project-name ./projectname/cmd/appname/
 
 ---
 
-#### Scenario 4: Missing make/ Scripts and Makefile
+#### Scenario 4: Missing .make/ Scripts and Makefile
 
 **Symptom**: Project has Go code but no automation.
 
 **Steps**:
 
-1. **Create make/build.sh**:
+1. **Create .make/build.sh**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -328,7 +328,7 @@ go build -o "$ROOT_DIR/bin/$BINARY_NAME" "$CMD_PATH"
 echo "Binary ready at: $ROOT_DIR/bin/$BINARY_NAME"
 ```
 
-2. **Create make/test.sh**:
+2. **Create .make/test.sh**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -337,11 +337,11 @@ cd "$ROOT_DIR"
 go test -v ./...
 ```
 
-3. **Create make/install.sh and make/uninstall.sh** (see ## Canonical Layout below)
+3. **Create .make/install.sh and .make/uninstall.sh** (see ## Canonical Layout below)
 
 4. **Make executable**:
 ```bash
-chmod +x make/*.sh
+chmod +x .make/*.sh
 ```
 
 5. **Create/replace Makefile** at project root (see ## Canonical Layout below for the full template):
@@ -350,10 +350,10 @@ MAKEFLAGS += --no-print-directory
 .PHONY: build test lint fmt clean install uninstall
 
 build:
-	./make/build.sh
+	./.make/build.sh
 
 test:
-	./make/test.sh
+	./.make/test.sh
 
 lint:
 	go vet ./...
@@ -366,10 +366,10 @@ clean:
 	rm -rf bin/
 
 install: build
-	./make/install.sh
+	./.make/install.sh
 
 uninstall:
-	./make/uninstall.sh
+	./.make/uninstall.sh
 ```
 
 ---
@@ -486,9 +486,9 @@ func run() error {
 EOF
 ```
 
-4. **Create `make/build.sh`**:
+4. **Create `.make/build.sh`**:
 ```bash
-cat > make/build.sh <<'EOF'
+cat > .make/build.sh <<'EOF'
 #!/bin/bash
 set -euo pipefail
 
@@ -501,19 +501,19 @@ cd "$ROOT_DIR"
 go build -o "$ROOT_DIR/bin/$BINARY_NAME" "$CMD_PATH"
 echo "Binary ready at: $ROOT_DIR/bin/$BINARY_NAME"
 EOF
-chmod +x make/build.sh
+chmod +x .make/build.sh
 ```
 
-5. **Create `make/test.sh`**:
+5. **Create `.make/test.sh`**:
 ```bash
-cat > make/test.sh <<'EOF'
+cat > .make/test.sh <<'EOF'
 #!/bin/bash
 set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 go test -v ./...
 EOF
-chmod +x make/test.sh
+chmod +x .make/test.sh
 ```
 
 6. **Create root Makefile** (see ## Canonical Layout for full template)
@@ -593,7 +593,7 @@ projectname/
 
 - **`projectname/`** = All source code (cmd/internal/pkg)
 - **`cfg/`** = Runtime configuration defaults (optional)
-- **`make/`** = Development automation scripts
+- **`.make/`** = Development automation scripts
 - **`bin/`** = Compiled outputs (don't commit)
 - **`testdata/`** = Test fixtures and data
 - Project root = infrastructure only: `go.mod`, `Makefile`, `README.md`
@@ -632,7 +632,7 @@ Run with `make test` or `go test ./...`
 | Add source file | `projectname/internal/domain/file.go` | Package = domain |
 | Add tests | `projectname/internal/domain/file_test.go` | Same package, same directory |
 | Add default configuration | `cfg/config.yaml` | Only if config needed |
-| Add build script | `make/script-name.sh` | Delegates to Go commands |
+| Add build script | `.make/script-name.sh` | Delegates to Go commands |
 | Add test fixtures | `testdata/` | JSON, YAML, CSV, etc |
 | Add public type | `projectname/pkg/types/types.go` | Exported, importable externally |
 
@@ -689,7 +689,7 @@ makalu/
 ├── go.mod
 ├── bin/
 ├── cfg/                  (optional)
-├── make/
+├── .make/
 │   ├── build.sh
 │   └── test.sh
 ├── README.md
@@ -722,7 +722,7 @@ app/
 ├── bin/
 ├── cfg/
 │   └── config.yaml
-├── make/
+├── .make/
 │   ├── build.sh
 │   ├── test.sh
 │   └── deploy.sh
@@ -812,7 +812,7 @@ make build                   # Build binary
 
 ## Canonical Layout
 
-Canonical target structure for all Go projects. `go.mod` lives at the project root. All source code lives in a directory named after the project (`projectname/`) with cmd/internal/pkg structure. A single root Makefile handles orchestration, while `make/` scripts do the actual build/test work.
+Canonical target structure for all Go projects. `go.mod` lives at the project root. All source code lives in a directory named after the project (`projectname/`) with cmd/internal/pkg structure. A single root Makefile handles orchestration, while `.make/` scripts do the actual build/test work.
 
 **Key principle**: Source code is separated from project infrastructure. No `.go` files at the project root — all source belongs in the named package directory.
 
@@ -831,7 +831,7 @@ project-name/
 ├── cfg/                          ← Configuration files (optional)
 │   └── config.yaml               ← Default configuration
 │
-├── make/                          ← Automation scripts
+├── .make/                          ← Automation scripts
 │   ├── build.sh                  ← Build script (go build)
 │   ├── test.sh                   ← Test script
 │   ├── install.sh                ← Install script
@@ -891,19 +891,19 @@ database_url: postgres://localhost/db
 timeout: 30
 ```
 
-#### `make/` — Automation Scripts
+#### `.make/` — Automation Scripts
 
 Scripts execute Go commands directly — do not delegate to make. Always start with `set -euo pipefail`.
 
 ```bash
-make/
+.make/
 ├── build.sh       # Build binary to bin/
 ├── test.sh        # Run all tests
 ├── install.sh     # Install to ~/.local/bin
 └── uninstall.sh   # Remove from ~/.local/bin
 ```
 
-**`make/build.sh`**:
+**`.make/build.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -918,7 +918,7 @@ go build -o "$ROOT_DIR/bin/$BINARY_NAME" "$CMD_PATH"
 echo "Binary ready at: $ROOT_DIR/bin/$BINARY_NAME"
 ```
 
-**`make/test.sh`**:
+**`.make/test.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -929,7 +929,7 @@ cd "$ROOT_DIR"
 go test -v ./...
 ```
 
-**`make/install.sh`**:
+**`.make/install.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -942,7 +942,7 @@ cp "$ROOT_DIR/bin/$BINARY_NAME" "$INSTALL_DIR/$BINARY_NAME"
 echo "Installed: $INSTALL_DIR/$BINARY_NAME"
 ```
 
-**`make/uninstall.sh`**:
+**`.make/uninstall.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -1002,7 +1002,7 @@ testdata/
 
 ### Single Makefile
 
-One Makefile at the project root. Delegates build/test to `make/` scripts.
+One Makefile at the project root. Delegates build/test to `.make/` scripts.
 
 ```makefile
 MAKEFLAGS += --no-print-directory
@@ -1012,10 +1012,10 @@ MAKEFLAGS += --no-print-directory
 BINARY_NAME := project-name
 
 build:
-	./make/build.sh
+	./.make/build.sh
 
 test:
-	./make/test.sh
+	./.make/test.sh
 
 lint:
 	go vet ./...
@@ -1028,10 +1028,10 @@ clean:
 	rm -rf bin/
 
 install: build
-	./make/install.sh
+	./.make/install.sh
 
 uninstall:
-	./make/uninstall.sh
+	./.make/uninstall.sh
 
 help:
 	@echo "Usage: make <target>"
@@ -1048,7 +1048,7 @@ help:
 
 **Key principles**:
 - Root Makefile is the single entry point for all operations
-- `build` and `test` delegate to `make/` scripts
+- `build` and `test` delegate to `.make/` scripts
 - `lint`, `fmt`, `clean` run Go commands directly
 
 ### Go Module and Imports
@@ -1508,13 +1508,13 @@ project/
 # BAD: binary lands in project root (or inside projectname/)
 go build ./projectname/cmd/appname/
 
-# GOOD: Always use make build or ./make/build.sh
+# GOOD: Always use make build or ./.make/build.sh
 make build
 # or
-./make/build.sh
+./.make/build.sh
 ```
 
-The `make/build.sh` script always uses `-o "$ROOT_DIR/bin/$BINARY_NAME"`, guaranteeing the binary goes to `bin/`.
+The `.make/build.sh` script always uses `-o "$ROOT_DIR/bin/$BINARY_NAME"`, guaranteeing the binary goes to `bin/`.
 
 As a safety net, add the binary name to `.gitignore`:
 ```gitignore
@@ -1556,7 +1556,7 @@ monorepo/
 ```
 
 - `go.mod` lives at `<component>/`, not at the git root
-- `<component>/make/` scripts resolve `ROOT_DIR` to the component dir: `$(cd "$(dirname "$0")/.." && pwd)`
+- `<component>/.make/` scripts resolve `ROOT_DIR` to the component dir: `$(cd "$(dirname "$0")/.." && pwd)`
 - The git root has a separate orchestrator Makefile — this is **not** Anti-Pattern 9 (Two Makefiles)
 - When updating `.gitignore`, paths are relative to `<component>/`, not the git root
 
@@ -1573,7 +1573,7 @@ When creating a complete Go project from scratch, the full workflow involves the
 
 After completing a migration:
 
-1. **Check the Makefile** — verify it matches the standard in ## Canonical Layout above (opening lines, .PHONY, help pattern, make/ delegation)
+1. **Check the Makefile** — verify it matches the standard in ## Canonical Layout above (opening lines, .PHONY, help pattern, .make/ delegation)
 2. **Check the `.gitignore`** — if it is missing the AI Tools section or deviates from the standard, invoke the `gitignore-skeleton` skill
 3. **Check the READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-skeleton` skill
 4. **Commit the changes** — invoke the `git-commit-suggest` skill to stage and commit the reorganization

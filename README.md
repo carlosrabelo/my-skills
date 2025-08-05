@@ -36,19 +36,19 @@ Skills cover Go and Python project structure, Git workflows, code documentation,
 
 | Skill | Mode | Description |
 |-------|------|-------------|
-| `go-skeleton` | agent | Standard Go project layout: flat root with `go.mod`, single Makefile, `cmd/`, `internal/`, `make/` scripts. Creates from scratch or reorganizes existing projects. |
+| `go-skeleton` | agent | Standard Go project layout: flat root with `go.mod`, single Makefile, `cmd/`, `internal/`, `.make/` scripts. Creates from scratch or reorganizes existing projects. |
 
 ### Python
 
 | Skill | Mode | Description |
 |-------|------|-------------|
-| `python-skeleton` | agent | Standard Python project layout: flat root, `pyproject.toml`, `.venv`, single Makefile, `make/` scripts. Creates from scratch or reorganizes existing projects. |
+| `python-skeleton` | agent | Standard Python project layout: flat root, `pyproject.toml`, `.venv`, single Makefile, `.make/` scripts. Creates from scratch or reorganizes existing projects. |
 
 ### Tooling
 
 | Skill | Mode | Description |
 |-------|------|-------------|
-| `makefile-skeleton` | agent | Standard Makefile structure: opening lines, self-documenting help, standard targets, delegate-to-make/ pattern. Creates from scratch or updates existing files. |
+| `makefile-skeleton` | agent | Standard Makefile structure: opening lines, self-documenting help, standard targets, `.make/` script delegation. Creates from scratch or updates existing files. |
 
 ### Documentation
 

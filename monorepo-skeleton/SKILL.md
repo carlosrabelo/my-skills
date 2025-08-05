@@ -67,7 +67,7 @@ ls go.mod pyproject.toml 2>/dev/null
 # What components already exist?
 ls -d */ 2>/dev/null
 
-# Where are existing make/ scripts?
+# Where are existing .make/ scripts?
 find . -name "*.sh" -not -path "./.venv/*" -not -path "*/vendor/*"
 ```
 
@@ -84,7 +84,7 @@ repo/
 ├── go.mod
 ├── go.sum
 ├── bin/
-├── make/
+├── .make/
 │   ├── build.sh
 │   └── test.sh
 ├── cmd/
@@ -104,18 +104,18 @@ mv go.mod go.sum go-component/
 mv cmd/ internal/ go-component/
 mv Makefile go-component/
 mv bin/ go-component/
-mv make/ go-component/
+mv .make/ go-component/
 mv .gitignore go-component/    # if it's Go-specific
 ```
 
-3. **Fix ROOT_DIR in make/ scripts** — was resolving to git root, now must resolve to `<component>/`:
+3. **Fix ROOT_DIR in .make/ scripts** — was resolving to git root, now must resolve to `<component>/`:
 ```bash
 # Before (resolved to repo/):
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 # After (resolves to go-component/):
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-# No change needed! The script is now at go-component/make/,
+# No change needed! The script is now at go-component/.make/,
 # so $(dirname "$0")/.. still resolves to go-component/.
 ```
 
@@ -135,10 +135,10 @@ help: ## Show available targets
 		| awk 'BEGIN {FS = ":.*## "} {printf "  %-15s %s\n", $$1, $$2}'
 
 build: ## Build all components
-	@go-component/make/build.sh
+	@go-component/.make/build.sh
 
 test: ## Test all components
-	@go-component/make/test.sh
+	@go-component/.make/test.sh
 ```
 
 5. **Create a root `.gitignore`** (if needed):
@@ -164,7 +164,7 @@ repo/
 ├── Makefile
 ├── pyproject.toml
 ├── .venv/
-├── make/
+├── .make/
 │   ├── setup.sh
 │   └── test.sh
 ├── main.py
@@ -187,7 +187,7 @@ mkdir python-component    # use a domain-specific name
 ```bash
 mv pyproject.toml python-component/
 mv Makefile python-component/
-mv make/ python-component/
+mv .make/ python-component/
 mv tests/ python-component/    # if exists
 mv *.py python-component/
 # Move sub-packages if any:
@@ -199,7 +199,7 @@ mv *.py python-component/
 rm -rf .venv
 cd python-component
 python3 -m venv .venv
-make/setup.sh    # reinstalls dependencies
+.make/setup.sh    # reinstalls dependencies
 ```
 
 5. **Verify shebag paths** — `Path(__file__).resolve().parent` now resolves to `python-component/`, where `.venv` is a sibling. No changes needed if shebag used `parent` (not `parent.parent`).
@@ -220,10 +220,10 @@ help: ## Show available targets
 		| awk 'BEGIN {FS = ":.*## "} {printf "  %-15s %s\n", $$1, $$2}'
 
 setup: ## Set up all components
-	@python-component/make/setup.sh
+	@python-component/.make/setup.sh
 
 test: ## Test all components
-	@python-component/make/test.sh
+	@python-component/.make/test.sh
 ```
 
 7. **Verify**:
@@ -259,7 +259,7 @@ mkdir api-server    # domain-specific name
 ```bash
 mv go.mod go.sum api-server/
 mv cmd/ internal/ api-server/
-mv bin/ make/ api-server/    # if they exist and are Go-specific
+mv bin/ .make/ api-server/    # if they exist and are Go-specific
 ```
 
 3. **Split the Makefile**:
@@ -308,7 +308,7 @@ git read-tree --prefix=python-pipeline/ -u python-pipeline/main
 git commit -m "import python-pipeline as monorepo component"
 ```
 
-4. **Fix ROOT_DIR in make/ scripts** — each component's scripts now live one level deeper (inside the component dir), but since they use `$(dirname "$0")/..`, they already resolve correctly.
+4. **Fix ROOT_DIR in .make/ scripts** — each component's scripts now live one level deeper (inside the component dir), but since they use `$(dirname "$0")/..`, they already resolve correctly.
 
 5. **Create the root orchestrator Makefile**.
 
@@ -329,11 +329,11 @@ git mv backend/ api-server/
 ```makefile
 # Old:
 build:
-	backend/make/build.sh
+	backend/.make/build.sh
 
 # New:
 build:
-	api-server/make/build.sh
+	api-server/.make/build.sh
 ```
 
 3. **Update CI/CD configs** — `.github/workflows/`, `Dockerfile`, etc.
@@ -347,23 +347,23 @@ make build && make test
 
 ## Creating a New Monorepo from Scratch
 
-The git root is an **orchestrator only**. No language "lives" at the git root. Each component is self-contained with its own root (`go.mod` or `pyproject.toml`), its own Makefile, and its own `make/` scripts.
+The git root is an **orchestrator only**. No language "lives" at the git root. Each component is self-contained with its own root (`go.mod` or `pyproject.toml`), its own Makefile, and its own `.make/` scripts.
 
 ### Root Layout
 
 ```
 monorepo/
-├── Makefile              ← Orchestrator only — delegates to component make/ scripts
+├── Makefile              ← Orchestrator only — delegates to component .make/ scripts
 ├── go-component/         ← Go root (contains go.mod)
 │   ├── Makefile
 │   ├── go.mod
 │   ├── bin/
-│   └── make/
+│   └── .make/
 ├── python-component/     ← Python root (contains pyproject.toml)
 │   ├── Makefile
 │   ├── pyproject.toml
 │   ├── .venv/
-│   └── make/
+│   └── .make/
 └── shared/               ← Optional: CI configs, shared scripts, docs
 ```
 
@@ -391,12 +391,12 @@ help: ## Show available targets
 		| awk 'BEGIN {FS = ":.*## "} {printf "  %-15s %s\n", $$1, $$2}'
 
 build: ## Build all components
-	@go-component/make/build.sh
-	@python-component/make/setup.sh
+	@go-component/.make/build.sh
+	@python-component/.make/setup.sh
 
 test: ## Test all components
-	@go-component/make/test.sh
-	@python-component/make/test.sh
+	@go-component/.make/test.sh
+	@python-component/.make/test.sh
 ```
 
 Having two Makefiles (root + component) is **not** the Anti-Pattern (Two Makefiles) in a multi-language monorepo — they serve different purposes. The anti-pattern is two Makefiles for the same language/component.
@@ -439,7 +439,7 @@ Use language suffixes (`-go`, `-py`) only when two components share the same dom
 
 Each component:
 - Has its own `Makefile` with language-specific targets
-- Has its own `make/` with scripts
+- Has its own `.make/` with scripts
 - Resolves `ROOT_DIR` relative to itself, not the git root:
   ```bash
   ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"   # resolves to <component>/
@@ -451,7 +451,7 @@ Each component:
 
 ### Per-Language Components
 
-- **Go components**: see `go-skeleton` — `go.mod` lives at `<component>/`, `bin/` and `make/` are siblings
+- **Go components**: see `go-skeleton` — `go.mod` lives at `<component>/`, `bin/` and `.make/` are siblings
 - **Python components**: see `python-skeleton` — `pyproject.toml` and `.venv` live at `<component>/`, self-relaunching shebag works unchanged
 
 ---

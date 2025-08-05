@@ -155,7 +155,7 @@ project/
 │   ├── cmd/
 │   └── internal/
 ├── bin/
-└── make/
+└── .make/
 ```
 
 After:
@@ -163,13 +163,13 @@ After:
 cmd/project-name/    # Go entry point
 internal/            # Internal packages
 bin/                 # Compiled binaries
-make/                 # Build and install scripts
+.make/                 # Build and install scripts
 ```
 
 Steps:
 1. Rename the section heading.
 2. Remove any `src/` directory from the tree — move its children up one level.
-3. Add `make/` entry if missing.
+3. Add `.make/` entry if missing.
 
 ---
 
@@ -426,7 +426,7 @@ cmd/project-name/    # Go entry point
 internal/domain/     # Core business logic
 internal/cli/        # Command definitions and user interaction
 bin/                 # Compiled binaries (git-ignored)
-make/                 # Build and install scripts
+.make/                 # Build and install scripts
 cfg/                 # Default configuration files
 ```
 ````

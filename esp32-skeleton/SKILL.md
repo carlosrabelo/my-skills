@@ -1,6 +1,6 @@
 ---
 name: esp32-skeleton
-description: Standard ESP32/ESP8266 Arduino project structure (PlatformIO, src/, make/ scripts). Creates from scratch or reorganizes existing projects.
+description: Standard ESP32/ESP8266 Arduino project structure (PlatformIO, src/, .make/ scripts). Creates from scratch or reorganizes existing projects.
 mode: agent
 category: project
 shared: true
@@ -63,7 +63,7 @@ Projects fall into one of three tiers — choose based on what the user describe
 
 ## Canonical Layout
 
-Canonical structure for all PlatformIO-based Arduino projects. `platformio.ini` and `Makefile` live at the project root. Source code lives in `src/`. Build automation delegates to `make/` helper scripts.
+Canonical structure for all PlatformIO-based Arduino projects. `platformio.ini` and `Makefile` live at the project root. Source code lives in `src/`. Build automation delegates to `.make/` helper scripts.
 
 **Key principle**: PlatformIO requires `src/` for firmware source. The Makefile wraps PlatformIO commands to provide a consistent interface. Secrets are never committed — only `.template` or `.example` files are tracked.
 
@@ -75,7 +75,7 @@ Single board, one source file, no credentials, no dependencies.
 project-name/
 ├── src/
 │   └── main.cpp              ← Single firmware source
-├── make/
+├── .make/
 │   ├── check-pio.sh          ← Verify PlatformIO installation
 │   ├── run-pio.sh            ← Execute pio in venv
 │   └── clean.sh              ← Remove build artifacts
@@ -96,7 +96,7 @@ project-name/
 │   ├── main.cpp              ← Main firmware
 │   ├── secret.h              ← Credentials (gitignored)
 │   └── secret.h.template     ← Credentials template (committed)
-├── make/
+├── .make/
 │   ├── check-pio.sh
 │   ├── run-pio.sh
 │   ├── clean.sh
@@ -134,7 +134,7 @@ project-name/
 │   ├── pio_check.sh
 │   ├── build.sh              ← Multi-variant build automation
 │   └── generate_assets.sh    ← Build all firmware variants
-├── make/
+├── .make/
 │   ├── check-pio.sh
 │   ├── run-pio.sh
 │   ├── clean.sh
@@ -243,14 +243,14 @@ Ask or infer from the user's description:
 1. `src/main.cpp` — minimal Arduino sketch
 2. `platformio.ini` — single `[env:<board>]` section
 3. `Makefile` — standard targets
-4. `make/check-pio.sh`, `make/install-pio.sh`, `make/run-pio.sh`, `make/clean.sh`
+4. `.make/check-pio.sh`, `.make/install-pio.sh`, `.make/run-pio.sh`, `.make/clean.sh`
 5. `.gitignore` — see gitignore-skeleton for PlatformIO patterns
 6. `README.md`
 
 #### Standard tier — add to Simple:
 
 7. `src/secret.h.template`
-8. `make/detect_board.sh`
+8. `.make/detect_board.sh`
 9. `.vscode/extensions.json`
 10. `.env.example`
 11. Add `lib_deps` to `platformio.ini`
@@ -259,7 +259,7 @@ Ask or infer from the user's description:
 
 12. `test/` structure with Unity tests
 13. `data/` for filesystem assets
-14. `scripts/` replacing or supplementing `make/`
+14. `scripts/` replacing or supplementing `.make/`
 15. Multi-environment `platformio.ini` (see ## PlatformIO Configuration)
 16. `README-PT.md`
 
@@ -289,9 +289,9 @@ For Advanced tier, add:
 BOARD ?= esp32     # selectable via: make BOARD=esp8266 flash
 ```
 
-### Step 5 — make/ Scripts
+### Step 5 — .make/ Scripts
 
-#### `make/check-pio.sh`
+#### `.make/check-pio.sh`
 
 ```bash
 #!/usr/bin/env bash
@@ -310,7 +310,7 @@ echo "PlatformIO not found. Run: make install-pio"
 exit 1
 ```
 
-#### `make/install-pio.sh`
+#### `.make/install-pio.sh`
 
 ```bash
 #!/usr/bin/env bash
@@ -319,7 +319,7 @@ set -euo pipefail
 pip install platformio
 ```
 
-#### `make/run-pio.sh`
+#### `.make/run-pio.sh`
 
 ```bash
 #!/usr/bin/env bash
@@ -334,17 +334,17 @@ fi
 exec pio "$@"
 ```
 
-#### `make/clean.sh`
+#### `.make/clean.sh`
 
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
-./make/run-pio.sh run --target clean
+./.make/run-pio.sh run --target clean
 ```
 
-#### `make/detect_board.sh`
+#### `.make/detect_board.sh`
 
 ```bash
 #!/usr/bin/env bash
@@ -392,43 +392,43 @@ UPLOAD_SPEED     ?= 921600
 .PHONY: build check check-pio clean deps detect-port erase flash help install-pio monitor test upload
 
 build: check-pio ## Compile firmware
-	./make/run-pio.sh run
+	./.make/run-pio.sh run
 
 upload: check-pio ## Upload firmware to device
-	./make/run-pio.sh run --target upload \
+	./.make/run-pio.sh run --target upload \
 	    --upload-port $(UPLOAD_PORT) \
 	    --upload-speed $(UPLOAD_SPEED)
 
 flash: build upload ## Compile and upload
 
 monitor: check-pio ## Open serial monitor
-	./make/run-pio.sh device monitor \
+	./.make/run-pio.sh device monitor \
 	    --port $(MONITOR_PORT) \
 	    --baud $(MONITOR_SPEED)
 
 clean: ## Remove build artifacts
-	./make/clean.sh
+	./.make/clean.sh
 
 deps: check-pio ## Install dependencies
-	./make/run-pio.sh pkg install
+	./.make/run-pio.sh pkg install
 
 check: check-pio ## Run static analysis
-	./make/run-pio.sh check
+	./.make/run-pio.sh check
 
 test: check-pio ## Run unit tests
-	./make/run-pio.sh test
+	./.make/run-pio.sh test
 
 erase: check-pio ## Erase device flash memory
-	./make/run-pio.sh run --target erase
+	./.make/run-pio.sh run --target erase
 
 detect-port: ## Auto-detect board USB port and save to .env
-	@./make/detect_board.sh
+	@./.make/detect_board.sh
 
 install-pio: ## Install PlatformIO
-	@./make/install-pio.sh
+	@./.make/install-pio.sh
 
 check-pio: ## Verify PlatformIO is installed
-	@./make/check-pio.sh
+	@./.make/check-pio.sh
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -460,10 +460,10 @@ And update build/upload targets to use `$(BUILD_ENV)`:
 
 ```makefile
 build: check-pio ## Compile firmware (BOARD=esp32|esp8266)
-	./make/run-pio.sh run --environment $(BUILD_ENV)
+	./.make/run-pio.sh run --environment $(BUILD_ENV)
 
 upload: check-pio ## Upload to device (BOARD=esp32|esp8266)
-	./make/run-pio.sh run --environment $(BUILD_ENV) --target upload
+	./.make/run-pio.sh run --environment $(BUILD_ENV) --target upload
 ```
 
 ---
@@ -481,7 +481,7 @@ Read these files if they exist:
 - `platformio.ini`
 - `Makefile`
 - `src/` directory structure
-- `make/` or `scripts/` directory
+- `.make/` or `scripts/` directory
 
 Identify what is missing compared to the target layout in ## Canonical Layout.
 
@@ -495,19 +495,19 @@ Look at `platformio.ini` to determine current complexity:
 
 ### Step 3 — Common Gaps to Fix
 
-#### Required `make/` scripts
+#### Required `.make/` scripts
 
-> **Do not create duplicate scripts.** If the project has a script like `pio_check.sh` that duplicates `check-pio.sh`, consolidate them into the standard name. The canonical names are: `check-pio.sh`, `install-pio.sh`, `run-pio.sh`, `clean.sh`, `detect_board.sh`. No other script names should exist in `make/` for these functions.
+> **Do not create duplicate scripts.** If the project has a script like `pio_check.sh` that duplicates `check-pio.sh`, consolidate them into the standard name. The canonical names are: `check-pio.sh`, `install-pio.sh`, `run-pio.sh`, `clean.sh`, `detect_board.sh`. No other script names should exist in `.make/` for these functions.
 
 Verify each script exists. Create any that are missing using the templates in ## Creating from Scratch > Step 5:
 
-- [ ] `make/check-pio.sh` — verifies PlatformIO is installed
-- [ ] `make/install-pio.sh` — installs PlatformIO via pip
-- [ ] `make/run-pio.sh` — wraps `pio` with PATH fallback
-- [ ] `make/clean.sh` — delegates clean to PlatformIO
+- [ ] `.make/check-pio.sh` — verifies PlatformIO is installed
+- [ ] `.make/install-pio.sh` — installs PlatformIO via pip
+- [ ] `.make/run-pio.sh` — wraps `pio` with PATH fallback
+- [ ] `.make/clean.sh` — delegates clean to PlatformIO
 
 For Standard tier also check:
-- [ ] `make/detect_board.sh` — auto-detects USB port
+- [ ] `.make/detect_board.sh` — auto-detects USB port
 
 #### Required Makefile targets
 
@@ -791,7 +791,7 @@ When using filesystem:
 
 ```makefile
 upload-fs: check-pio ## Upload filesystem image
-	./make/run-pio.sh run --target uploadfs
+	./.make/run-pio.sh run --target uploadfs
 ```
 
 ---

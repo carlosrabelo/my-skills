@@ -18,7 +18,7 @@ Unified skill for organizing Python projects following a consistent pattern for 
 project-name/          ← root: infrastructure only
 ├── pyproject.toml     ← project metadata and tool config
 ├── Makefile           ← orchestration
-├── make/              ← build/test/lint scripts
+├── .make/              ← build/test/lint scripts
 ├── bin/               ← scripts/wrappers (optional)
 ├── docs/              ← documentation (optional)
 ├── tests/             ← test files
@@ -175,7 +175,7 @@ typecheck:
 	.venv/bin/mypy $(PY_SOURCES)
 ```
 
-5. **Update `make/lint.sh`**:
+5. **Update `.make/lint.sh`**:
 ```bash
 # Old: "$ROOT_DIR/.venv/bin/ruff" check src/ tests/
 # New:
@@ -536,7 +536,7 @@ PY_SOURCES := project_name/
 ```
 And update `fmt`, `typecheck`, `run` targets to use `$(PY_SOURCES)` and `project_name.cli`.
 
-7. **Update `make/lint.sh`**:
+7. **Update `.make/lint.sh`**:
 ```bash
 # Old: "$ROOT_DIR"/*.py
 # New:
@@ -566,7 +566,7 @@ make typecheck
 
 1. **Create `pyproject.toml`** at the project root with dependencies from `requirements.txt` (see **## Canonical Layout** below for the full template)
 
-2. **Update `make/setup.sh`** to install from `pyproject.toml`:
+2. **Update `.make/setup.sh`** to install from `pyproject.toml`:
 ```bash
 # Old:
 "$ROOT_DIR/.venv/bin/pip" install -r "$ROOT_DIR/requirements.txt"
@@ -656,16 +656,16 @@ python3 -m venv .venv
 .venv/bin/pip install -e ".[dev]"
 ```
 
-6. **Create `make/test.sh`**:
+6. **Create `.make/test.sh`**:
 ```bash
-cat > make/test.sh <<'EOF'
+cat > .make/test.sh <<'EOF'
 #!/bin/bash
 set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 .venv/bin/pytest -v
 EOF
-chmod +x make/test.sh
+chmod +x .make/test.sh
 ```
 
 7. **Create root Makefile** (see ## Canonical Layout for full template)
@@ -825,7 +825,7 @@ class ProcessingError(ProjectError):
 
 #### 1. Virtual Environment
 - Always `.venv` at project root
-- Reproducible via `make/setup.sh`
+- Reproducible via `.make/setup.sh`
 
 #### 2. Dependencies
 - Runtime deps in `[project.dependencies]`
@@ -915,7 +915,7 @@ project-name/
 │
 ├── pyproject.toml                ← Project metadata, dependencies, tool config
 │
-├── make/                          ← Automation scripts
+├── .make/                          ← Automation scripts
 │   ├── setup.sh                  ← Create .venv and install dependencies
 │   ├── test.sh                   ← Run tests
 │   ├── lint.sh                   ← Run linter
@@ -1029,7 +1029,7 @@ pip install ".[dev]"
 
 ### Makefile
 
-Single entry point for all operations. Delegates to `make/` scripts.
+Single entry point for all operations. Delegates to `.make/` scripts.
 
 ```makefile
 MAKEFLAGS += --no-print-directory
@@ -1039,13 +1039,13 @@ PY_SOURCES := project_name/
 .PHONY: setup test lint fmt typecheck clean install run help
 
 setup:
-	./make/setup.sh
+	./.make/setup.sh
 
 test:
-	./make/test.sh
+	./.make/test.sh
 
 lint:
-	./make/lint.sh
+	./.make/lint.sh
 
 fmt:
 	.venv/bin/ruff format $(PY_SOURCES) tests/
@@ -1062,7 +1062,7 @@ run:
 	.venv/bin/python -m project_name.cli   # ← use actual package.module; append args via: make run ARGS="--help"
 
 install: setup
-	./make/install.sh
+	./.make/install.sh
 
 help:
 	@echo "Usage: make <target>"
@@ -1080,11 +1080,11 @@ help:
 
 ---
 
-### make/ — Shell Scripts
+### .make/ — Shell Scripts
 
 Scripts do the actual work directly. Always start with `set -euo pipefail`. Activate `.venv` before running Python commands.
 
-**`make/setup.sh`**:
+**`.make/setup.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -1101,7 +1101,7 @@ echo "Installing dependencies..."
 echo "Setup complete."
 ```
 
-**`make/test.sh`**:
+**`.make/test.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -1111,7 +1111,7 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 "$ROOT_DIR/.venv/bin/pytest" "$ROOT_DIR/tests/" "$@"
 ```
 
-**`make/lint.sh`**:
+**`.make/lint.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -1121,7 +1121,7 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 "$ROOT_DIR/.venv/bin/ruff" check "$ROOT_DIR/project_name/" tests/
 ```
 
-**`make/install.sh`**:
+**`.make/install.sh`**:
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -1235,7 +1235,7 @@ Add `[project.scripts]` to `pyproject.toml` to make the tool available as a name
 project-name = "project_name.cli:main"   # ← "package.module:function"
 ```
 
-After `make setup` (which runs `pip install -e .`), the command is available at `.venv/bin/project-name`. The `make/install.sh` script copies it to `~/.local/bin/`.
+After `make setup` (which runs `pip install -e .`), the command is available at `.venv/bin/project-name`. The `.make/install.sh` script copies it to `~/.local/bin/`.
 
 ---
 
@@ -1379,7 +1379,7 @@ def load_config(path):
 # BAD
 git add .venv/
 
-# GOOD: .venv in .gitignore, reproducible via make/setup.sh
+# GOOD: .venv in .gitignore, reproducible via .make/setup.sh
 ```
 
 #### Anti-Pattern 2: Source Files at Project Root
@@ -1412,7 +1412,7 @@ project-name/
 └── pyproject.toml
 ```
 
-The rule: all source files live inside `project_name/`. The project root contains only infrastructure: `Makefile`, `pyproject.toml`, `README.md`, `tests/`, `.venv/`, `make/`.
+The rule: all source files live inside `project_name/`. The project root contains only infrastructure: `Makefile`, `pyproject.toml`, `README.md`, `tests/`, `.venv/`, `.make/`.
 
 #### Anti-Pattern 3: Logic in main.py
 
@@ -1502,7 +1502,7 @@ monorepo/
 
 - `pyproject.toml` and `.venv` live inside `<component>/`, not at the git root
 - Run the app from the component root: `cd <component> && .venv/bin/python -m my_service.cli`
-- `make/setup.sh` computes `ROOT_DIR` as `$(dirname "$0")/..`, resolving to `<component>/`
+- `.make/setup.sh` computes `ROOT_DIR` as `$(dirname "$0")/..`, resolving to `<component>/`
 - Sub-packages inside `<component>/my_service/` are legitimate domain packages
 
 See **monorepo-skeleton** for the full monorepo layout, root Makefile patterns, and component naming conventions.
@@ -1513,7 +1513,7 @@ See **monorepo-skeleton** for the full monorepo layout, root Makefile patterns, 
 
 After completing all steps:
 
-1. **Check the Makefile** — verify it matches the standard in **## Canonical Layout** above (opening lines, .PHONY, help pattern, make/ delegation)
+1. **Check the Makefile** — verify it matches the standard in **## Canonical Layout** above (opening lines, .PHONY, help pattern, .make/ delegation)
 2. **Check the `.gitignore`** — if it is missing the AI Tools section or deviates from the standard, invoke the `gitignore-skeleton` skill
 3. **Check the READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-skeleton` skill
 

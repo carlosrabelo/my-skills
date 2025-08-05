@@ -1,6 +1,6 @@
 ---
 name: makefile-skeleton
-description: Standard Makefile structure (opening lines, .PHONY, self-doc help, delegate-to-make/ pattern). Creates from scratch or updates existing files.
+description: Standard Makefile structure (opening lines, .PHONY, self-doc help, .make/ script delegation). Creates from scratch or updates existing files.
 mode: agent
 category: tooling
 shared: true
@@ -38,15 +38,15 @@ Before starting, determine the context:
 - [ ] Read the entire Makefile
 - [ ] List all targets that exist
 - [ ] Identify which standard targets are missing
-- [ ] Note targets with multi-line shell (candidates for `make/` extraction)
-- [ ] Check `make/` directory for existing scripts
+- [ ] Note targets with multi-line shell (candidates for `.make/` extraction)
+- [ ] Check `.make/` directory for existing scripts
 
 **During:**
 - [ ] Add mandatory opening lines (Scenario 1) first — this is always safe
 - [ ] Consolidate `.PHONY` (Scenario 3) — no behavior change, safe to do early
 - [ ] Convert help target (Scenario 2) — then verify `make help` output looks correct
 - [ ] Add variables block (Scenario 6) — before updating targets that use them
-- [ ] Extract shell to `make/` scripts (Scenario 4) — test each target after extraction
+- [ ] Extract shell to `.make/` scripts (Scenario 4) — test each target after extraction
 - [ ] Add missing standard targets (Scenario 5) — test each new target
 
 **After:**
@@ -135,11 +135,11 @@ Steps:
 ```makefile
 .PHONY: build
 build:
-	@./make/build.sh
+	@./.make/build.sh
 
 .PHONY: test
 test:
-	@./make/test.sh
+	@./.make/test.sh
 
 .PHONY: clean
 clean:
@@ -159,7 +159,7 @@ Steps:
 
 ---
 
-#### Scenario 4: Extract Multi-Line Shell to `make/`
+#### Scenario 4: Extract Multi-Line Shell to `.make/`
 
 **When**: A target contains more than 2-3 shell lines. The logic is hard to read, test, or reuse.
 
@@ -178,10 +178,10 @@ build:
 **After:**
 ```makefile
 build: ## Build binary
-	@./make/build.sh
+	@./.make/build.sh
 ```
 
-And `make/build.sh`:
+And `.make/build.sh`:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
@@ -200,11 +200,11 @@ echo "Done: $BUILD_DIR/$BINARY_NAME"
 ```
 
 Steps:
-1. Create `make/` directory if it does not exist.
-2. Extract the shell lines to `make/script-name.sh`.
+1. Create `.make/` directory if it does not exist.
+2. Extract the shell lines to `.make/script-name.sh`.
 3. Add `#!/usr/bin/env bash` and `set -euo pipefail` at the top of every new script.
-4. Make the script executable: `chmod +x make/script-name.sh`.
-5. Replace the target body with `@./make/script-name.sh`.
+4. Make the script executable: `chmod +x .make/script-name.sh`.
+5. Replace the target body with `@./.make/script-name.sh`.
 6. Variables that were in the Makefile (BINARY_NAME, VERSION, etc.) move into the script as local variables.
 
 Common scripts to extract: `build.sh`, `test.sh`, `install.sh`, `uninstall.sh`, `setup.sh`.
@@ -218,7 +218,7 @@ Common scripts to extract: `build.sh`, `test.sh`, `install.sh`, `uninstall.sh`, 
 **`quality` meta-target** (groups all quality checks):
 ```makefile
 quality: ## Run all quality checks
-	@./make/quality.sh
+	@./.make/quality.sh
 ```
 
 The composition of `quality` is language-specific — see the respective skeleton (go-skeleton, python-skeleton, etc.) for the exact dependencies (`fmt vet lint`, `fmt lint typecheck`, etc.).
@@ -242,31 +242,33 @@ Language-specific variable patterns (Go's `BINARY_NAME`, `LDFLAGS`, `VERSION`; E
 - Never remove an existing target name — add aliases or keep the old name as a dependency if renaming
 - Keep backward-compatible target names so contributors with muscle memory are not broken
 - Always test `make help` after converting the help target — if grep finds nothing, check that `##` comments are on the correct targets
-- Scripts in `make/` must be executable (`chmod +x`) before the Makefile delegates to them
+- Scripts in `.make/` must be executable (`chmod +x`) before the Makefile delegates to them
 - Do not add targets that are not needed by the project — migrate to the standard, not beyond it
 
 ---
 
 ## Creating from Scratch
 
-The Makefile is the single developer interface for a project — you always type `make <something>`, never a raw tool command directly. It should be short, self-documenting, and delegate complex logic to `make/` scripts.
+The Makefile is the single developer interface for a project — you always type `make <something>`, never a raw tool command directly. It should be short, self-documenting, and delegate complex logic to `.make/` scripts.
 
-**Key principle**: The Makefile orchestrates; `make/` scripts do the work. If a target needs more than one shell line, extract it to a script.
+**Key principle**: The Makefile orchestrates; `.make/` scripts do the work. If a target needs more than one shell line, extract it to a script.
+
+**Why `.make/`**: Use a hidden dot-directory at the project root for shell scripts so the top-level tree stays focused on source and config. When refactoring older repos, rename `make/` → `.make/` and update Makefile paths accordingly.
 
 Generic targets that apply to any project type:
 
 ```makefile
 build: ## Build project
-	@./make/build.sh
+	@./.make/build.sh
 
 test: ## Run tests
-	@./make/test.sh
+	@./.make/test.sh
 
 clean: ## Remove build artifacts
-	@./make/clean.sh
+	@./.make/clean.sh
 
 quality: ## Run all quality checks
-	@./make/quality.sh
+	@./.make/quality.sh
 ```
 
 `quality` is a meta-target grouping all quality checks (format, lint, type-check, vet — varies by language). See the language skeleton for the specific composition.
@@ -290,16 +292,16 @@ help: ## Show available targets
 		| awk 'BEGIN {FS = ":.*## "} {printf "  %-15s %s\n", $$1, $$2}'
 
 build: ## Build project
-	@./make/build.sh
+	@./.make/build.sh
 
 test: ## Run tests
-	@./make/test.sh
+	@./.make/test.sh
 
 quality: ## Run all quality checks
-	@./make/quality.sh
+	@./.make/quality.sh
 
 clean: ## Remove build artifacts
-	@./make/clean.sh
+	@./.make/clean.sh
 ```
 
 ---
@@ -353,16 +355,16 @@ help: ## Show available targets
 
 Every target that should appear in the help output must have an `##` inline comment. Targets without `##` are silently excluded — use this for internal helper targets.
 
-### Delegate-to-`make/` Pattern
+### Delegate-to-`.make/` Pattern
 
-If a target needs more than one shell line, extract the logic to a `make/` script and delegate:
+If a target needs more than one shell line, extract the logic to a `.make/` script and delegate:
 
 ```makefile
 build: ## Build project
-	@./make/build.sh
+	@./.make/build.sh
 
 test: ## Run tests
-	@./make/test.sh
+	@./.make/test.sh
 ```
 
 The `@` prefix suppresses echoing the command. Scripts start with `#!/usr/bin/env bash` and `set -euo pipefail`.
@@ -383,7 +385,7 @@ version: ## Show version
 - **Missing `MAKEFLAGS += --no-print-directory`** — directory messages pollute output with `$(MAKE) -C`.
 - **Missing `.DEFAULT_GOAL := help`** — bare `make` builds the first target instead of showing usage.
 - **Targets without `##` inline comments** — `help` produces nothing useful.
-- **More than one shell line inside a target** — extract to a `make/` script.
+- **More than one shell line inside a target** — extract to a `.make/` script.
 - **Two Makefiles for one language project** — monorepo exception only.
 - **Scattered `.PHONY` declarations** — one declaration at the top.
 - **Tabs replaced by spaces** — Make requires hard tab characters (`\t`) for recipe lines.
@@ -400,8 +402,8 @@ See **monorepo-skeleton** for the full monorepo layout, root Makefile patterns, 
 
 ## Related Skills
 
-- **go-skeleton** — Complete Go Makefile with `BINARY_NAME`, `LDFLAGS`, `VERSION`, and `make/` scripts
-- **python-skeleton** — Complete Python Makefile with `setup`, `typecheck`, `.venv`, and `make/setup.sh`
+- **go-skeleton** — Complete Go Makefile with `BINARY_NAME`, `LDFLAGS`, `VERSION`, and `.make/` scripts
+- **python-skeleton** — Complete Python Makefile with `setup`, `typecheck`, `.venv`, and `.make/setup.sh`
 - **esp32-skeleton** — Complete ESP32 Makefile with `flash`, `monitor`, `install-pio`, and PlatformIO scripts
 - **monorepo-skeleton** — Root orchestrator Makefile pattern for multi-component repos
 - **project-scaffold** — Auto-detects project type and applies the appropriate skeleton
