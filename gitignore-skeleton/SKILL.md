@@ -43,7 +43,7 @@ Before starting, determine the context:
 
 **After:**
 - [ ] `# SECRETS` section present with `.env` and credentials (Scenario 1)
-- [ ] Project-type section complete and accurate (Scenario 2)
+- [ ] Project-type section complete and accurate (Scenario 2: GO, PYTHON, NODE, CPP, or ANSIBLE)
 - [ ] Sections in priority order: SECRETS → Project → EDITORS → OS → EXCEPTIONS (Scenario 3)
 - [ ] `# EDITORS` and `# OS` sections present (Scenario 4)
 - [ ] All section headers use `====` banner format and ALL CAPS titles (Scenario 5)
@@ -90,7 +90,8 @@ If `.env.example` should also be ignored (no template needed), remove the `!.env
 # ============================================================================
 
 # Directories
-bin/
+bin/*
+!bin/.gitkeep
 
 # Files
 project-name
@@ -145,6 +146,31 @@ out/
 *.tsbuildinfo
 ```
 
+**C++ — missing or incomplete**
+
+Detect by presence of `CMakeLists.txt`, multiple `*.cpp` / `*.hpp`, `compile_commands.json`, or a Makefile-driven C++ toolchain (and the project is not ESP32-only — then see **ESP32** / **cpp-skeleton** as appropriate).
+
+```gitignore
+# ============================================================================
+# CPP
+# ============================================================================
+
+# Directories
+bin/*
+!bin/.gitkeep
+obj/
+
+# Files
+*.a
+*.d
+*.o
+*.out
+*.so
+compile_commands.json
+```
+
+Place `!bin/.gitkeep` immediately after `bin/*`. Add `bin/.gitkeep` in the repo when using this pattern.
+
 **Ansible — missing or incomplete**
 
 Detect by presence of `site.yml`, `playbook*.yml`, `ansible.cfg`, or `roles/`.
@@ -188,7 +214,7 @@ If the project has `inventory/` or `group_vars/` directories with `.gitkeep` fil
 
 ```
 # SECRETS
-# [GO | PYTHON | NODE | ANSIBLE | other project-type]
+# [GO | PYTHON | NODE | CPP | ANSIBLE | other project-type]
 # EDITORS
 # OS
 # EXCEPTIONS   ← only if needed; always last
@@ -262,7 +288,7 @@ Also convert entries to use `# Directories` / `# Files` subsections within each 
 - **Preserve all existing entries** — migration adds and reorders; it does not remove entries unless they are duplicates or clearly wrong.
 - **One blank line between sections** — consistent formatting makes the file scannable.
 - **Do not add project-type sections that don't apply** — a Go project does not need `node_modules/`.
-- **Section titles are ALL CAPS** — `# SECRETS`, `# GO`, `# EDITORS`, `# OS`, `# EXCEPTIONS`.
+- **Section titles are ALL CAPS** — `# SECRETS`, `# GO`, `# PYTHON`, `# NODE`, `# CPP`, `# ANSIBLE`, `# EDITORS`, `# OS`, `# EXCEPTIONS`.
 - **Every section uses the `====` banner format** — no plain `# Name` headers.
 
 ---
@@ -283,7 +309,7 @@ Sections in priority order (top = highest priority):
 
 ```
 # SECRETS           ← always first, always present
-# [Project type]    ← GO | PYTHON | NODE | ANSIBLE | other
+# [Project type]    ← GO | PYTHON | NODE | CPP | ANSIBLE | other
 # EDITORS           ← always present
 # OS                ← always present
 # EXCEPTIONS        ← only when needed; always last
@@ -328,7 +354,8 @@ The `!.env.example` negation keeps the example file in version control so contri
 # ============================================================================
 
 # Directories
-bin/
+bin/*
+!bin/.gitkeep
 
 # Files
 project-name
@@ -336,7 +363,7 @@ coverage.out
 coverage.html
 ```
 
-Replace `project-name` with the actual binary name. This catches misplaced `go build` calls that land a binary at the project root instead of `bin/` (see `go-skeleton`).
+Replace `project-name` with the actual binary name. This catches misplaced `go build` calls that land a binary at the project root instead of `bin/` (see `go-skeleton`). Use `bin/*` plus `!bin/.gitkeep` so the `bin/` tree stays in version control (empty dir via placeholder) while all built binaries are ignored — place the negation immediately after `bin/*`.
 
 **PYTHON**
 
@@ -381,6 +408,27 @@ out/
 
 # Files
 *.tsbuildinfo
+```
+
+**CPP**
+
+```gitignore
+# ============================================================================
+# CPP
+# ============================================================================
+
+# Directories
+bin/*
+!bin/.gitkeep
+obj/
+
+# Files
+*.a
+*.d
+*.o
+*.out
+*.so
+compile_commands.json
 ```
 
 **ANSIBLE**
@@ -450,6 +498,7 @@ Use when a section above blocks an entire directory but a placeholder file insid
 - Always place it **last** — negations only work if they appear after the ignore rule they override.
 - One `!` line per file to preserve; do not use wildcards in negations.
 - Add a comment above each negation explaining what directory it belongs to.
+- **Go** normally uses `bin/*` then `!bin/.gitkeep` inside the **GO** section (not here) so the negation immediately follows the ignore rule.
 
 ### Complete Examples
 
@@ -476,7 +525,8 @@ credentials.json
 # ============================================================================
 
 # Directories
-bin/
+bin/*
+!bin/.gitkeep
 
 # Files
 project-name
@@ -650,7 +700,7 @@ Note: Ansible projects use `vault.yml` and `*.vault` for encrypted secrets — a
 
 - **Ignoring `node_modules/` in a Go project** — only include the section that matches the project type.
 
-- **Using `*` globs broadly** — prefer explicit entries over `*` wildcards that may accidentally block legitimate files.
+- **Using `*` globs broadly** — prefer explicit entries over `*` wildcards that may accidentally block legitimate files. **Exception:** `bin/*` with `!bin/.gitkeep` is the standard Go pattern for build output while tracking an empty `bin/` directory.
 
 - **EXCEPTIONS section not last** — negations placed before the ignore rules they override have no effect.
 
@@ -726,7 +776,8 @@ Contains only the section for that component's stack.
 # ============================================================================
 
 # Directories
-bin/
+bin/*
+!bin/.gitkeep
 
 # Files
 api-server

@@ -18,7 +18,7 @@ A personal library of reusable agent skills for software development workflows (
 
 This repository contains a curated set of skills that encode best practices for software development. They are consumed by [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [Cursor Agent Skills](https://cursor.com/docs) (`~/.cursor/skills/`), and several other CLI agents. Each skill is a detailed guide the agent uses to provide consistent, high-quality assistance across different tasks and projects.
 
-Skills cover Go and Python project structure, Git workflows, code documentation, and GitHub tooling — acting as a shared knowledge base that can be installed globally via **sync-skills** (six destinations; missing directories are skipped).
+Skills cover Go, C++, and Python project structure, Git workflows, code documentation, and GitHub tooling — acting as a shared knowledge base that can be installed globally via **sync-skills** (six destinations; missing directories are skipped).
 
 **Note:** Do not install personal skills under `~/.cursor/skills-cursor/` — that path is reserved for Cursor-built-in skills.
 
@@ -30,7 +30,13 @@ Skills cover Go and Python project structure, Git workflows, code documentation,
 |-------|------|-------------|
 | `git-commit-suggest` | manual | Analyze repository changes and suggest `git add` + `git commit` commands using Conventional Commits formatting |
 | `github-repo-editor` | manual | Generate `gh repo edit` commands with auto-derived description and topics for a repository |
-| `gitignore-skeleton` | agent | Standard `.gitignore` structure: AI tools, secrets, project-type (Go/Python/Node), editors, OS. Creates from scratch or updates existing files. |
+| `gitignore-skeleton` | agent | Standard `.gitignore` structure: secrets, project-type (Go/C++/Python/Node), editors, OS. Creates from scratch or updates existing files. |
+
+### C++
+
+| Skill | Mode | Description |
+|-------|------|-------------|
+| `cpp-skeleton` | agent | Standard C++ layout: root orchestrator + `projectname/` (`src/`, `tests/`, `lib/`), Makefile + `.make/` scripts, g++, Catch2. Creates from scratch or reorganizes existing projects. |
 
 ### Go
 
@@ -60,7 +66,9 @@ Skills cover Go and Python project structure, Git workflows, code documentation,
 
 | Skill | Mode | Description |
 |-------|------|-------------|
-| `monorepo-skeleton` | agent | Standard multi-language monorepo layout: component-level roots, root orchestrator Makefile, consistent naming. Creates from scratch or reorganizes existing repos. |
+| `esp32-skeleton` | agent | Standard ESP32/PlatformIO layout: PlatformIO, `src/`, `.make/` scripts. |
+| `monorepo-skeleton` | agent | Standard multi-language monorepo layout: component-level roots, root orchestrator Makefile, consistent naming. |
+| `skeleton-scaffold` | agent | Central orchestrator: detects stack, applies one language/platform skeleton, then gitignore-skeleton and readme-skeleton. Detection matrix: [skeleton-scaffold/SKILL.md](skeleton-scaffold/SKILL.md) only (single source of truth). |
 
 ### Meta
 
@@ -110,7 +118,7 @@ In Claude Code, use slash commands (for example `/git-commit-suggest`). In Curso
 
 ### Agent skills
 
-Agent skills load from context when the agent decides they match — for example, `go-skeleton` when organizing a Go project.
+Agent skills load from context when the agent decides they match — for example, **skeleton-scaffold** when bootstrapping or detecting project type, or a specific **\*-skeleton** (e.g. `go-skeleton`) when the task is already scoped to one stack.
 
 ### Updating skills
 
@@ -122,15 +130,19 @@ After modifying skills in this repository, run **sync-skills** again so all exis
 my-skills/
 ├── .claude/
 │   └── skills/
-│       ├── audit-skills/       ← Internal meta-skills (not synced globally)
+│       ├── audit-skills/
 │       ├── check-sync/
 │       └── sync-skills/
 │           └── SKILL.md
 ├── .cursor/
-│   └── skills/                 ← Mirror of .claude/skills/ for Cursor in this repo
+│   └── skills/
 │       ├── audit-skills/
 │       ├── check-sync/
 │       └── sync-skills/
+├── cpp-skeleton/
+│   └── SKILL.md
+├── esp32-skeleton/
+│   └── SKILL.md
 ├── git-commit-suggest/
 │   └── SKILL.md
 ├── github-repo-editor/
@@ -153,6 +165,8 @@ my-skills/
 ├── readme-skeleton/
 │   ├── SKILL.md
 │   └── references/
+├── skeleton-scaffold/
+│   └── SKILL.md
 ├── README.md
 └── README-PT.md
 ```
@@ -172,7 +186,9 @@ Each skill lives in its own directory. Skills with a `references/` subdirectory 
    - An overview section explaining when to use the skill
    - Detailed instructions and examples
 
-3. Run **sync-skills** to install it into every configured global directory.
+3. If the skill is a new **language or platform layout**, add a row to the detection table in **`skeleton-scaffold/SKILL.md`** (single source of truth) and a row in **[AGENTS.md](AGENTS.md)** inventory if it syncs publicly.
+
+4. Run **sync-skills** to install it into every configured global directory.
 
 ## Contributing
 

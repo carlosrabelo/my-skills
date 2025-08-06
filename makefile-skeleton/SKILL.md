@@ -403,7 +403,8 @@ See **monorepo-skeleton** for the full monorepo layout, root Makefile patterns, 
 ## Related Skills
 
 - **go-skeleton** — Complete Go Makefile with `BINARY_NAME`, `LDFLAGS`, `VERSION`, and `.make/` scripts
+- **cpp-skeleton** — C++ layout with root orchestrator + component Makefile and `.make/` (g++, tests, Catch2)
 - **python-skeleton** — Complete Python Makefile with `setup`, `typecheck`, `.venv`, and `.make/setup.sh`
 - **esp32-skeleton** — Complete ESP32 Makefile with `flash`, `monitor`, `install-pio`, and PlatformIO scripts
 - **monorepo-skeleton** — Root orchestrator Makefile pattern for multi-component repos
-- **project-scaffold** — Auto-detects project type and applies the appropriate skeleton
+- **skeleton-scaffold** — Central detection and orchestration; applies one `*-skeleton` then gitignore + readme (see that skill’s table)

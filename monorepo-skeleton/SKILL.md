@@ -452,6 +452,7 @@ Each component:
 ### Per-Language Components
 
 - **Go components**: see `go-skeleton` — `go.mod` lives at `<component>/`, `bin/` and `.make/` are siblings
+- **C++ components**: see `cpp-skeleton` — `projectname/` holds `src/` and `tests/`; prefer per-component `bin/` when multiple C++ trees exist
 - **Python components**: see `python-skeleton` — `pyproject.toml` and `.venv` live at `<component>/`, self-relaunching shebag works unchanged
 
 ---
@@ -462,7 +463,7 @@ Each component:
 |---|---|
 | `go.mod` at git root | Makes the monorepo a pure Go project; other components become sub-packages |
 | `pyproject.toml` or `.venv` at git root | Python tooling takes over the entire repo |
-| Root Makefile with language-specific build logic | Mixes orchestration with implementation — use component Makefiles for `go build`, `pip install`, etc.; global targets like `deploy` and `ci` are fine at root |
+| Root Makefile with language-specific build logic | Mixes orchestration with implementation — use component Makefiles for `go build`, `g++` / component scripts, `pip install`, etc.; global targets like `deploy` and `ci` are fine at root |
 | Shared `bin/` at git root | Binary naming conflicts across components |
 | Component named `src/` or `lib/` | No domain meaning; misleads future contributors |
 
@@ -483,13 +484,15 @@ Each component:
 After completing all steps above:
 
 1. **For each Go component** — invoke the `go-skeleton` skill to verify and fix the internal structure
-2. **For each Python component** — invoke the `python-skeleton` skill to verify and fix the internal structure
-3. **Check the root Makefile** — if it does not follow the `makefile-skeleton` standard, invoke the `makefile-skeleton` skill
-4. **Check the root READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-skeleton` skill
-5. **Commit the changes** — invoke the `git-commit-suggest` skill to stage and commit the reorganization
+2. **For each C++ component** — invoke the `cpp-skeleton` skill to verify and fix the internal structure
+3. **For each Python component** — invoke the `python-skeleton` skill to verify and fix the internal structure
+4. **Check the root Makefile** — if it does not follow the `makefile-skeleton` standard, invoke the `makefile-skeleton` skill
+5. **Check the root READMEs** — if `README.md` or `README-PT.md` need updating, invoke the `readme-skeleton` skill
+6. **Commit the changes** — invoke the `git-commit-suggest` skill to stage and commit the reorganization
 
 ## Related Skills
 
 - **go-skeleton** — Internal structure of Go components (create from scratch or migrate existing)
+- **cpp-skeleton** — Internal structure of C++ components (Makefile + `.make/` layout)
 - **python-skeleton** — Internal structure of Python components (create from scratch or migrate existing)
 - **makefile-skeleton** — Standard Makefile structure used in both root orchestrator and component Makefiles

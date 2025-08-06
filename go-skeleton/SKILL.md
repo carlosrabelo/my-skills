@@ -20,7 +20,7 @@ project-name/              ← root: infrastructure only
 ├── go.sum
 ├── Makefile               ← orchestration
 ├── .make/                  ← build/test/install scripts
-├── bin/                   ← compiled binaries (gitignored)
+├── bin/                   ← compiled binaries (`bin/*` gitignored; `bin/.gitkeep` tracks dir)
 ├── cfg/                   ← runtime config (optional)
 ├── docs/                  ← documentation (optional)
 ├── README.md
@@ -101,7 +101,7 @@ Before starting, determine the context:
 - [ ] Single Makefile at root
 - [ ] `.make/` scripts present and executable
 - [ ] `projectname/cmd/appname/main.go` ≤ 50 lines
-- [ ] `bin/` in `.gitignore`
+- [ ] `.gitignore` has `bin/*` and `!bin/.gitkeep` (see **gitignore-skeleton**), and `bin/.gitkeep` exists
 - [ ] Commit with clear message
 
 ### Rules
@@ -155,6 +155,7 @@ project/
 1. **Create the named directory and move Go module files**:
 ```bash
 mkdir -p projectname bin
+touch bin/.gitkeep
 mv src/go.mod .
 mv src/go.sum .
 ```
@@ -594,7 +595,7 @@ projectname/
 - **`projectname/`** = All source code (cmd/internal/pkg)
 - **`cfg/`** = Runtime configuration defaults (optional)
 - **`.make/`** = Development automation scripts
-- **`bin/`** = Compiled outputs (don't commit)
+- **`bin/`** = Compiled outputs (`bin/*` ignored; keep directory in Git with `bin/.gitkeep`)
 - **`testdata/`** = Test fixtures and data
 - Project root = infrastructure only: `go.mod`, `Makefile`, `README.md`
 
@@ -825,7 +826,7 @@ project-name/
 ├── go.mod                        ← Go module definition (ALWAYS at root)
 ├── go.sum                        ← Dependency checksums
 │
-├── bin/                          ← Compiled binaries (never commit)
+├── bin/                          ← Compiled binaries (`bin/*` ignored; `.gitkeep` keeps dir)
 │   └── project-name              ← Executable after build
 │
 ├── cfg/                          ← Configuration files (optional)
@@ -874,7 +875,7 @@ bin/project-name              ← Compiled binary
 ./bin/project-name --help
 ```
 
-**Note**: Add `bin/` to root `.gitignore` (build artifacts).
+**Note**: In root `.gitignore`, use `bin/*` and `!bin/.gitkeep` (see **gitignore-skeleton**). Commit `bin/.gitkeep` so the empty `bin/` tree exists for builds.
 
 #### `cfg/` — Configuration Files (Optional)
 
@@ -1069,24 +1070,13 @@ module project-name
 
 ### .gitignore
 
+For the full layout (SECRETS, banner sections, etc.), use **gitignore-skeleton**. Minimal Go-related excerpt:
+
 ```
 # Build artifacts
-bin/
+bin/*
+!bin/.gitkeep
 project-name          ← replace with the actual binary name; catches go build without -o
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Go
-coverage.out
-coverage.html
 ```
 
 ---
@@ -1516,9 +1506,10 @@ make build
 
 The `.make/build.sh` script always uses `-o "$ROOT_DIR/bin/$BINARY_NAME"`, guaranteeing the binary goes to `bin/`.
 
-As a safety net, add the binary name to `.gitignore`:
+As a safety net, keep `project-name` (root-level stray binary) in `.gitignore` and use `bin/*` with `!bin/.gitkeep` for the output directory:
 ```gitignore
-bin/
+bin/*
+!bin/.gitkeep
 project-name          ← binary name without path, catches root-level builds
 ```
 

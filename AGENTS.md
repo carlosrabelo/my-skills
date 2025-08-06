@@ -14,6 +14,8 @@ Central repository for agent skills (Claude Code, Cursor Agent Skills, and other
 
 ## Skill Inventory
 
+**Project detection and which skeleton to run:** defined only in **[skeleton-scaffold/SKILL.md](skeleton-scaffold/SKILL.md)** — update that table when adding stacks; do not duplicate the matrix here.
+
 Public skills (synced to all destinations via `/sync-skills`):
 
 | Skill | Category | Mode | Shared |
@@ -21,11 +23,12 @@ Public skills (synced to all destinations via `/sync-skills`):
 | git-commit-suggest | git | manual | ✓ |
 | github-repo-editor | github | manual | ✓ |
 | gitignore-skeleton | git | agent | ✓ |
+| cpp-skeleton | project | agent | ✓ |
 | esp32-skeleton | project | agent | ✓ |
 | go-skeleton | go | agent | ✓ |
 | makefile-skeleton | tooling | agent | ✓ |
 | monorepo-skeleton | project | agent | ✓ |
-| project-scaffold | project | agent | ✓ |
+| skeleton-scaffold | project | agent | ✓ |
 | python-skeleton | python | agent | ✓ |
 | readme-skeleton | documentation | agent | ✓ |
 

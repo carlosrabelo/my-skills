@@ -18,10 +18,10 @@ Copy all public skills from this project to the six global destinations. Destina
 Only **public skills** — root-level directories that contain a `SKILL.md`:
 
 ```
-esp32-skeleton/       git-commit-suggest/   github-repo-editor/
-gitignore-skeleton/   go-skeleton/          makefile-skeleton/
-monorepo-skeleton/    project-scaffold/     python-skeleton/
-readme-skeleton/
+cpp-skeleton/         esp32-skeleton/       git-commit-suggest/
+github-repo-editor/   gitignore-skeleton/   go-skeleton/
+makefile-skeleton/    monorepo-skeleton/    skeleton-scaffold/
+python-skeleton/      readme-skeleton/
 ```
 
 ## What Is NOT Synced
