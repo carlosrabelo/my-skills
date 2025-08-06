@@ -54,3 +54,7 @@ Inspect the current directory (or the user-provided root) for these signals:
 |-------|--------|
 | Layout (pick one) | **go-skeleton**, **cpp-skeleton**, **python-skeleton**, **esp32-skeleton**, **monorepo-skeleton** |
 | Always after layout | **gitignore-skeleton**, then **readme-skeleton** |
+
+## Related Skills
+
+- **sync-skills** — Run after changes to propagate corrected skills to all destinations.

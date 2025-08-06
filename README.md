@@ -16,11 +16,9 @@ A personal library of reusable agent skills for software development workflows (
 
 ## Overview
 
-This repository contains a curated set of skills that encode best practices for software development. They are consumed by [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [Cursor Agent Skills](https://cursor.com/docs) (`~/.cursor/skills/`), and several other CLI agents. Each skill is a detailed guide the agent uses to provide consistent, high-quality assistance across different tasks and projects.
+This repository contains a curated set of skills that encode best practices for software development. They are consumed by multiple agent runtimes (Claude Code, Cursor, and other CLIs). Each skill is a detailed guide the agent uses to provide consistent, high-quality assistance across different tasks and projects.
 
 Skills cover Go, C++, and Python project structure, Git workflows, code documentation, and GitHub tooling — acting as a shared knowledge base that can be installed globally via **sync-skills** (six destinations; missing directories are skipped).
-
-**Note:** Do not install personal skills under `~/.cursor/skills-cursor/` — that path is reserved for Cursor-built-in skills.
 
 ## Skills
 
@@ -87,6 +85,7 @@ Skills cover Go, C++, and Python project structure, Git workflows, code document
   - Cursor: `~/.cursor/skills/` (for global [Agent Skills](https://cursor.com/docs))
   - OpenCode: `~/.config/opencode/skills/`
   - Gemini / Antigravity / Qwen: `~/.gemini/skills/`, `~/.gemini/antigravity/skills/`, `~/.qwen/skills/`
+- **Note (Cursor):** do not install personal skills under `~/.cursor/skills-cursor/` — that path is reserved for Cursor-built-in skills.
 
 ## Installation
 
@@ -122,7 +121,7 @@ Agent skills load from context when the agent decides they match — for example
 
 ### Updating skills
 
-After modifying skills in this repository, run **sync-skills** again so all existing destinations (including `~/.cursor/skills/`) receive the update.
+After modifying skills in this repository, run **sync-skills** again so all existing destinations receive the update.
 
 ## Project Structure
 

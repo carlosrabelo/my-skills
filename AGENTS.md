@@ -4,12 +4,13 @@ Central repository for agent skills (Claude Code, Cursor Agent Skills, and other
 
 ## Rules
 
+- **Conversations are always in Portuguese** — use Portuguese to discuss ideas, plan changes, and explain actions.
+- **Never add a `## Changelog` section** to skill files — it wastes tokens.
+- **All SKILL.md files must be written entirely in English.** These files only become real skills after being synced to the destination directories via `/sync-skills`. Until then, they are source files — write them as if they are already deployed.
+- **Skill content must be agent- and version-agnostic.** In `*/SKILL.md`, avoid mentioning specific runtimes or destinations (for example “Cursor”, “Claude”, `~/.cursor/skills/`, `~/.claude/skills/`). If you need to refer to syncing, say “all destinations” and rely on `/sync-skills`.
 - **Edit skills ONLY in this repository.** Never create or edit synced skills directly under global install paths (for example `~/.claude/skills/` or `~/.cursor/skills/`).
 - **Do not run `/sync-skills` automatically.** The user runs it manually when they want to sync.
 - The `sync-skills` skill (in `.claude/skills/` and mirrored in `.cursor/skills/`) is exclusive to this project and is not copied to global directories as part of public sync.
-- **Never add a `## Changelog` section** to skill files — it wastes tokens.
-- **All SKILL.md files must be written entirely in English.** These files only become real skills after being synced to the destination directories via `/sync-skills`. Until then, they are source files — write them as if they are already deployed.
-- **Conversations are always in Portuguese** — use Portuguese to discuss ideas, plan changes, and explain actions.
 - **Cursor:** do not author skills under `~/.cursor/skills-cursor/` — that directory is reserved for Cursor-built-in skills.
 
 ## Skill Inventory

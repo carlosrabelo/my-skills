@@ -16,11 +16,9 @@ Uma biblioteca pessoal de skills reutilizáveis para workflows de desenvolviment
 
 ## Visão Geral
 
-Este repositório contém um conjunto curado de skills que codificam boas práticas de desenvolvimento de software. São usadas pelo [Claude Code](https://docs.anthropic.com/en/docs/claude-code), por [Cursor Agent Skills](https://cursor.com/docs) (`~/.cursor/skills/`) e por outros agentes em CLI. Cada skill é um guia detalhado que o agente usa para fornecer assistência consistente em diferentes tarefas e projetos.
+Este repositório contém um conjunto curado de skills que codificam boas práticas de desenvolvimento de software. São usadas por múltiplos runtimes de agentes (Claude Code, Cursor e outros CLIs). Cada skill é um guia detalhado que o agente usa para fornecer assistência consistente em diferentes tarefas e projetos.
 
 As skills cobrem estrutura de projetos Go, C++ e Python, workflows Git, documentação de código e ferramentas GitHub — como base de conhecimento instalável globalmente via **sync-skills** (seis destinos; pastas inexistentes são ignoradas).
-
-**Nota:** não instale skills pessoais em `~/.cursor/skills-cursor/` — esse caminho é reservado às skills embutidas do Cursor.
 
 ## Skills
 
@@ -87,6 +85,7 @@ As skills cobrem estrutura de projetos Go, C++ e Python, workflows Git, document
   - Cursor: `~/.cursor/skills/` ([Agent Skills](https://cursor.com/docs))
   - OpenCode: `~/.config/opencode/skills/`
   - Gemini / Antigravity / Qwen: `~/.gemini/skills/`, `~/.gemini/antigravity/skills/`, `~/.qwen/skills/`
+- **Nota (Cursor):** não instale skills pessoais em `~/.cursor/skills-cursor/` — esse caminho é reservado às skills embutidas do Cursor.
 
 ## Instalação
 
@@ -122,7 +121,7 @@ As skills de agente são carregadas pelo contexto quando o agente identifica cor
 
 ### Atualizando skills
 
-Após modificar skills neste repositório, execute **sync-skills** de novo para atualizar todos os destinos existentes (incluindo `~/.cursor/skills/`).
+Após modificar skills neste repositório, execute **sync-skills** de novo para atualizar todos os destinos existentes.
 
 ## Estrutura do Projeto
 
